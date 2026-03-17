@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   // Pega o token dos cookies nativos do Next.js
   const token = request.cookies.get('findles.token')?.value;
 
