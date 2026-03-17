@@ -7,6 +7,7 @@ import Link from "next/link";
 
 import { ChevronUpIcon } from "@heroicons/react/24/solid";
 import useResponsiveDetect from "@/hooks/useResponsiveDetect";
+import logo from "@/assets/logo_FindLES.png";
 
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
@@ -55,13 +56,22 @@ export const Header = ({ titulo }: { titulo: string }) => {
           " top-0  w-screen  bg-[#3F3E3E] flex flex-col lg:flex-row  items-start z-40 lg:fixed"
         }
       >
+        <Image
+            alt="logo"
+            src={logo}
+            className="ml-20 cursor-pointer w-32 h-12 "
+            onClick={() => push("/busca")}
+        />
+        
+
+        
         {((!isCollapside && responsiveSize === "sm") ||
           responsiveSize !== "sm") && (
             <>
 
-              <p className="text-white font-bold py-2 lg:ml-20 text-2xl">
+             {/* <p className="text-white font-bold py-2 lg:ml-20 text-2xl">
                 {titulo}
-              </p>
+              </p>*/}
             </>
           )}
         <div className="ml-auto mr-auto flex text-[#898989] text-xl ">

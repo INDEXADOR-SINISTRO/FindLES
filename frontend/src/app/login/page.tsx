@@ -9,6 +9,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChangeEvent, useCallback, useEffect, useState } from "react";
 
+import logo from "@/assets/logo_findLES_cor.png";
+
 
 
 const Login = () => {
@@ -56,10 +58,15 @@ const Login = () => {
       
       <div className="bg-white p-10 w-full shadow-[4px_4px_5px_rgba(0,0,0,0.40)] border border-[#898989] max-w-105">
         
-        
-        <h1 className="text-3xl font-medium text-center text-black mb-8">
+        <Image
+            alt="logo"
+            src={logo}
+            className="ml-auto mr-auto cursor-pointer w-40 h-16 "
+            onClick={() => push("/login")}
+        />
+        {/*<h1 className="text-3xl font-medium text-center text-black">
           FindLES
-        </h1>
+        </h1>*/}
 
         <form className="flex flex-col" onSubmit={(e) => e.preventDefault()}>
           

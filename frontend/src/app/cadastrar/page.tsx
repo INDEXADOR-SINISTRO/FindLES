@@ -7,23 +7,30 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChangeEvent, useCallback, useEffect, useState } from "react";
 
-
+import logo from "@/assets/logo_findLES_cor.png";
 
 const Cadastro = () => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
   const [nome, setNome] = useState<string>("");
+
+  const {push} = useRouter();
   return (
 
     <div className="min-h-screen flex items-center justify-center bg-[#EBE9E1]">
 
-      <div className="bg-white p-10 w-full shadow-[4px_4px_5px_rgba(0,0,0,0.40)] border border-[#898989] max-w-[420px]">
+      <div className="bg-white p-10 w-full shadow-[4px_4px_5px_rgba(0,0,0,0.40)] border border-[#898989] max-w-105">
         
-
-        <h1 className="text-3xl font-medium text-center text-[#3F3E3E] ">
+      <Image
+          alt="logo"
+          src={logo}
+          className="ml-auto mr-auto cursor-pointer w-40 h-16  "
+          onClick={() => push("/login")}
+      />
+        {/*<h1 className="text-3xl font-medium text-center text-black">
           FindLES
-        </h1>
+        </h1>*/}
         <h2 className="text-md font-medium text-center text-[#898989] mb-4">
           Criar nova conta
         </h2>
