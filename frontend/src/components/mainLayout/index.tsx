@@ -71,7 +71,7 @@ export default function MainLayout({
       <SnackbarProvider>
         {isPublic && (
           <>
-            <div className="hidden">
+              <div className={path.includes("busca") ? "" : "hidden"}>
               <Header titulo={"FindLES"} />
             </div>
             <div>

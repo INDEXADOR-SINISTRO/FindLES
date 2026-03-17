@@ -32,8 +32,7 @@
             return (
               <li
                 key={route.url}
-                // 1. Adicionamos 'transition-all duration-300 ease-in-out' para animar tudo
-                // 2. Fixamos o 'border-l-8' e alternamos apenas a cor da borda entre transparente e escuro
+                
                 className={`w-full transition-all duration-300 ease-in-out border-l-8 ${
                   isActive
                     ? "bg-white font-bold text-black border-[#3f3f3f]"
@@ -74,7 +73,7 @@
                     {route.children?.map((subRoute) => (
                       <li
                         key={`${subRoute.url}`}
-                        // Adicionada transição suave também nas sub-rotas
+                        
                         className={`flex ml-10 items-center gap-2 pb-3 transition-colors duration-200 ${
                           pathname === subRoute.url 
                             ? "font-bold text-black" 

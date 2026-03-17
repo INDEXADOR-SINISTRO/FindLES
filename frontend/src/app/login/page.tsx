@@ -16,6 +16,7 @@ const Login = () => {
   const [password, setPassword] = useState<string>("");
   const [ isLoading,setIsLoading] = useState<boolean>(false);
   const {showMessage} = useSnackbar()
+  const {push} = useRouter();
 
   const onCheckFields = ()=>{
       if (email === "" || password === ""){
@@ -93,7 +94,10 @@ const Login = () => {
           <div className="flex justify-center mb-4">    
             <a href="/admin">
                 <Button
-                onClick={()=>{console.log("nada")}}
+                onClick={()=>{
+                  push("/busca")
+
+                }}
                 text="Entrar"
                 />
             </a>
