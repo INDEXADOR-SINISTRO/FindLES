@@ -1,4 +1,4 @@
 package com.example.findles.dto;
 
-public class DadosTokenJWTDTO {
+public record DadosTokenJWTDTO(String token) {
 }

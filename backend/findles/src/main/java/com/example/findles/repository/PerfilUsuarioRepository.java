@@ -1,10 +1,10 @@
 package com.example.findles.repository;
 
-import com.example.findles.domain.Usuario;
+import com.example.findles.domain.PerfilUsuario;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.security.core.userdetails.UserDetails;
 
-public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
+import java.util.Optional;
 
-    UserDetails findByEmail(String email);
+public interface PerfilUsuarioRepository extends JpaRepository<PerfilUsuario, Long> {
+    Optional<PerfilUsuario> findByNome(String nome);
 }

@@ -3,6 +3,8 @@ package com.example.findles.controller;
 import com.example.findles.dto.DadosCadastroUsuarioDTO;
 import com.example.findles.service.UsuarioService;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,14 +14,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 @RestController
-@RequestMapping("/api/usuarios")
-public class UsuarioController {
+@RequestMapping("/api/teste")
+public class TestController {
 
-    private static final Logger logger = LoggerFactory.getLogger(UsuarioController.class);
+    private static final Logger logger = LoggerFactory.getLogger(TestController.class);
 
     @Autowired
     private UsuarioService usuarioService;
