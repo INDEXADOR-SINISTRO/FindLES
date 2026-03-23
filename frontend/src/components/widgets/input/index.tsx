@@ -1,4 +1,5 @@
-import React, { ChangeEvent, useMemo } from 'react'
+import { EyeDropperIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/solid';
+import React, { ChangeEvent, useMemo, useState } from 'react'
 
 type InputProps = {
   id: string;
@@ -11,6 +12,7 @@ type InputProps = {
   placeholder?: string;
   label?: string;
   disabled?: boolean;
+  isPassword?: boolean;
 };
 
 const Input = ({
@@ -24,11 +26,13 @@ const Input = ({
     placeholder,
     label,
     disabled = false,
+    isPassword = false,
 }:InputProps) => {
     const desabilitado = " text-gray-400 "
     const baseStyle = " w-full h-10 px-2 bg-[#EBEAE4] border border-gray-600 shadow-[2px_2px_5px_rgba(0,0,0,0.30)] focus:outline-none focus:ring-1 focus:ring-gray-600 "
     const style = disabled ? desabilitado + baseStyle + " text-gray-400 " : baseStyle
     const error = " text-red-500 "
+    const [escondido,setEscondido] = useState<string>("password");
     
     const renderInput = useMemo(()=>{
         // checkbox personalizado
@@ -50,12 +54,13 @@ const Input = ({
                 <span className={`absolute left-0 top-0 m-0.5 w-5 h-5 bg-white rounded-full shadow transform transition-transform ${checked ? 'translate-x-4' : 'translate-x-0'}`} />
               </label>
               {label && <label htmlFor={id} className={showError ? error : disabled ? desabilitado : "text-sm"}>{label}</label>}
+            
             </div>
           )
         }
 
         return (
-            <div className={'flex flex-col ' + className} >
+            <div className={'flex flex-col relative ' + className} >
                 { label && <label htmlFor={id} className={showError ? error : disabled ? desabilitado : ""}>{label}</label>}
                 {type === 'textarea' ? (
                     <textarea
@@ -71,11 +76,31 @@ const Input = ({
                         id={id}
                         disabled={disabled}
                         onChange={onChange}
-                        type={type}
+                        type={isPassword ? escondido : type}
                         className={showError ? (className + style + " border-red-500") : (className + style)}
                         placeholder={placeholder}
                     />
                     )}
+                    <div className='absolute right-4 top-8'>
+                    <button
+                    onClick={()=>{
+                      if (escondido === "text"){
+                        setEscondido("password")
+                      }else{
+                        setEscondido("text")
+                      }
+                    }}
+                    >
+                      { isPassword && (
+                          escondido === "password" ?
+                            <EyeSlashIcon className='w-6 h-6 cursor-pointer'></EyeSlashIcon>
+                          : <EyeIcon className='w-6 h-6 cursor-pointer'></EyeIcon>
+                      )
+                        
+                      }
+                    </button>
+                    
+                    </div>
                 
             </div>
         )
@@ -89,7 +114,9 @@ const Input = ({
         className,
         placeholder,
         label,
-        disabled
+        disabled,
+        isPassword,
+        escondido
     ])
 
 

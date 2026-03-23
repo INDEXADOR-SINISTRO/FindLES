@@ -120,6 +120,7 @@ const Cadastro = () => {
                 onChange={(e)=>{setPassword(e.target.value)}}
                 label="Senha"
                 value={password}
+                isPassword={true}
             />
           </div>
 
@@ -130,6 +131,7 @@ const Cadastro = () => {
                 onChange={(e)=>{setConfirmPassword(e.target.value)}}
                 label="Confirmar senha"
                 value={confirmPassword}
+                isPassword={true}
             />
           </div>
 

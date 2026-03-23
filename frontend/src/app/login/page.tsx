@@ -91,6 +91,7 @@ const Login = () => {
                 onChange={(e)=>{setPassword(e.target.value)}}
                 label="Senha"
                 value={password}
+                isPassword={true}
             />
           </div>
 
