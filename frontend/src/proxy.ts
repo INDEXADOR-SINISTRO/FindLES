@@ -3,8 +3,7 @@ import type { NextRequest } from 'next/server';
 
 export function proxy(request: NextRequest) {
   // Pega o token dos cookies nativos do Next.js
-  const token = request.cookies.get('findles.token')?.value;
-
+  const token = request.cookies.get('token')?.value;
   // A rota que o usuário está tentando acessar
   const pathname = request.nextUrl.pathname;
 
@@ -23,5 +22,5 @@ export function proxy(request: NextRequest) {
 
 // Define em quais rotas o middleware deve agir
 export const config = {
-  matcher: ['/','/login','/cadastrar', '/recuperar-senha', '/dashboard/:path*'],
+  matcher: ['/','/login','/cadastrar', '/recuperar-senha', '/admin/:path*'],
 };
