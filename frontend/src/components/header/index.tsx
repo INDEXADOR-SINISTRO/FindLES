@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import Link from "next/link";
 
 import { ChevronUpIcon } from "@heroicons/react/24/solid";
@@ -15,6 +15,7 @@ import { getPerfil } from "@/store/modules/perfil/selectors";
 import { setPerfil } from "@/store/modules/perfil";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { Route } from "@mui/icons-material";
+import { AuthContext } from "@/context/AuthContext";
 
 export const Header = ({ titulo }: { titulo: string }) => {
   const [isCollapside, setIsCollapside] = useState<boolean>(false);
@@ -26,6 +27,9 @@ export const Header = ({ titulo }: { titulo: string }) => {
   const dispatch = useAppDispatch()
 
   const { push } = useRouter();
+  const {getUser, signOut} = useContext(AuthContext)
+  const user = getUser();
+  console.log(user)
 
 
   const usuario = true;
@@ -74,16 +78,16 @@ export const Header = ({ titulo }: { titulo: string }) => {
               </p>*/}
             </>
           )}
-        <div className="ml-auto mr-auto flex text-[#898989] text-xl ">
-          <div className={ pathname.includes("busca") ? " text-white font bold border-t-4 py-2 px-4 border-[#cecccc] hover:cursor-pointer bg-taupe-500" : "transition-all duration-300 ease-in-out border-t-4 py-2 px-4 hover:border-taupe-500 border-[#3f3f3f]  hover:cursor-pointer hover:bg-taupe-500 hover:text-white"}>
-            <Link className="w-full h-full"
+        <div className="w-full lg:w-auto mr-auto ml-auto flex text-[#898989] text-xl ">
+          <div className={ pathname.includes("busca") ? "w-1/2 lg:w-auto text-white font-bold border-t-4  border-[#cecccc] hover:cursor-pointer bg-taupe-500" : "  w-1/2 lg:w-auto transition-all duration-300 ease-in-out border-t-4  hover:border-taupe-500 border-[#3f3f3f]  hover:cursor-pointer hover:bg-taupe-500 hover:text-white"}>
+            <Link className="block w-full h-full py-2 px-4"
               href="/busca"
             >
               Busca
             </Link>
           </div>
-          <div className={pathname.includes("admin") ? " text-white font bold border-t-4 py-2 px-4 border-[#cecccc] hover:cursor-pointer bg-taupe-500" : " transition-all duration-300 ease-in-out border-t-4 py-2 px-4 hover:border-taupe-500 border-[#3f3f3f]  hover:cursor-pointer hover:bg-taupe-500 hover:text-white "}>
-            <Link className="w-full h-full"
+          <div className={pathname.includes("admin") ? "w-1/2 lg:w-auto text-white font-bold border-t-4  border-[#cecccc] hover:cursor-pointer bg-taupe-500" : "w-1/2 lg:w-auto transition-all duration-300 ease-in-out border-t-4  hover:border-taupe-500 border-[#3f3f3f]  hover:cursor-pointer hover:bg-taupe-500 hover:text-white "}>
+            <Link className="block w-full h-full py-2 px-4"
               href="/admin/indexacao"
             >
               Admin
@@ -95,17 +99,17 @@ export const Header = ({ titulo }: { titulo: string }) => {
         {usuario && (
           <div className="flex gap-3 items-center md:justify-center lg:absolute right-28 mt-2 mb-2">
             <div>
-              <p className="text-white">Olá, usuário</p>
+              <p className="text-white">Olá, {user?.nome}</p>
 
             </div>
-            <a href="/login">
+            
               <button
                 className="flex items-center justify-center gap-1 h-8 rounded-md cursor-pointer text-white hover:opacity-60 p-2"
-                onClick={() => console.log("nada")}
+                onClick={signOut}
               >
                 <p className="border-b-2">Sair</p>
               </button>
-            </a>
+            
             {responsiveSize === "sm" && (
               <button
                 className="absolute right-4 cursor-pointer rounded-md w-8 h-8 flex justify-center items-center"

@@ -7,9 +7,10 @@ import { authDto } from "@/types/user";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChangeEvent, useCallback, useEffect, useState } from "react";
+import { ChangeEvent, useCallback, useContext, useEffect, useState } from "react";
 
 import logo from "@/assets/logo_findLES_cor.png";
+import { AuthContext } from "@/context/AuthContext";
 
 
 
@@ -19,6 +20,7 @@ const Login = () => {
   const [ isLoading,setIsLoading] = useState<boolean>(false);
   const {showMessage} = useSnackbar()
   const {push} = useRouter();
+  const { signIn } = useContext(AuthContext);
 
   const onCheckFields = ()=>{
       if (email === "" || password === ""){
@@ -33,20 +35,20 @@ const Login = () => {
       const invalidFields = onCheckFields() 
 
       if(invalidFields){
-        showMessage({ message: "Preencha os campos obrigatórios", type: "error" })
+        showMessage({ message: "Preencha todos os campos", type: "error" })
         return;
       }
       setIsLoading(true);
       const payload :authDto = {
         email: email,
-        password: password
+        senha: password
       }
       try{
-        //await diretorService.create(payload)
+        await signIn(payload);
       }catch(e){
         const error = e as Error;
-        showMessage({ message:  error.message || "Erro ao fazer login", type: "error" })
-        setIsLoading(false);
+        showMessage({message:"E-mail ou senha incorretos.", type:"error"});
+        
       }
     }
 
@@ -101,11 +103,9 @@ const Login = () => {
           <div className="flex justify-center mb-4">    
             <a href="/admin">
                 <Button
-                onClick={()=>{
-                  push("/busca")
-
-                }}
+                onClick={onSubmit}
                 text="Entrar"
+                className="text-white"
                 />
             </a>
           </div>

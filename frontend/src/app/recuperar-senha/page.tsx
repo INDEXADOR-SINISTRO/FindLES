@@ -71,6 +71,7 @@ const Recover = () => {
             <Button
              onClick={()=>{showMessage({ message: "Não implementado", type: "warning" })}}
              text="Enviar"
+             className="text-white"
             />
           </div>
 

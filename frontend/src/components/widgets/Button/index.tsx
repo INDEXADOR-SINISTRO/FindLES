@@ -36,12 +36,12 @@ const Button = ({
     text  = "confirmar"
 }:ButtonProps) => {
 
-    const style = " bg-[#404040] text-white py-2 px-16 text-lg hover:bg-[#2b2b2b] transition-colors hover:cursor-pointer "
+    const style = " bg-[#404040] py-2 px-16 text-lg hover:bg-[#2b2b2b] transition-colors hover:cursor-pointer "
     const renderButton = useMemo(()=>{
         return (
                 <button
                     onClick={onClick}
-                    className={isLoading ? className + style + "cursor-not-allowed text-gray-400" : className + style + "cursor-pointer"}
+                    className={isLoading ?  style + className + " cursor-not-allowed text-gray-400" :  style + className + " cursor-pointer"}
                     disabled={isLoading}
                 >
                     <div className='flex justify-center w-full'>

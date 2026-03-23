@@ -30,11 +30,11 @@ const Select = ({
     disabled = false,
 }:SelectProps) => {
     const desabilitado = " text-gray-400 "  
-    const style = disabled ? desabilitado + " p-[0.7rem] bg-white cursor-pointer shadow-md border rounded-md " : " p-[0.7rem] bg-white cursor-pointer shadow-md border rounded-md "
+    const style = disabled ? desabilitado + " p-[0.7rem] bg-[#EBE9E1] cursor-pointer shadow-md border  " : " p-[0.7rem] bg-[#EBE9E1] cursor-pointer shadow-md border hover:bg-[#dfddd4]"
     const error = " text-red-500 "
     const renderSelect = useMemo(()=>{
         return (
-            <div className={'flex flex-col ' + className}>
+            <div className={'flex flex-col text-[#3f3f3f] ' + className}>
                 { label && <label htmlFor={id} className={showError ? error : disabled ? desabilitado : ""}>{label}</label>}
                 <select 
                     value={value}
@@ -42,9 +42,9 @@ const Select = ({
                     name={name} 
                     id={id}
                     disabled={disabled}
-                    className={showError ? (className + style + " border-red-500") : (className + style)}
+                    className={showError ? ( style + " border-red-500") : ( style)}
                 >
-                    <option disabled value="" >Selecione...</option>
+                    <option  value="" >Selecione...</option>
                     {
                     
                     options.map((opt, index)=> <option key={index} value={opt.value}>{opt.optionLabel} </option>)

@@ -8,7 +8,7 @@ interface PerfilState {
 }
 
 const initialState: PerfilState = {
-  perfil: "Administrador"
+  perfil: "user"
 };
 
 const perfilSlice = createSlice({

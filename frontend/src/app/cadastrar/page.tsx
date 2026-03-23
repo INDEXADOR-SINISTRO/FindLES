@@ -8,6 +8,9 @@ import { useRouter } from "next/navigation";
 import { ChangeEvent, useCallback, useEffect, useState } from "react";
 
 import logo from "@/assets/logo_findLES_cor.png";
+import { useSnackbar } from "@/components/widgets/snackbar";
+import { UserDto } from "@/types/user";
+import { userService } from "@/lib/services/usuario";
 
 const Cadastro = () => {
   const [email, setEmail] = useState<string>("");
@@ -15,7 +18,53 @@ const Cadastro = () => {
   const [confirmPassword, setConfirmPassword] = useState<string>("");
   const [nome, setNome] = useState<string>("");
 
+  const {showMessage} = useSnackbar();
+
+  const onCheckFields = ()=>{
+      if (nome === "" || password === "" || confirmPassword === "" || email === "" ){
+        showMessage({ message: "Preencha todos os campos ", type: "error" })
+        return true;
+      }
+      if(password !== confirmPassword){
+        showMessage({ message: "A confirmação está diferente da senha ", type: "error" })
+        return true;
+      }
+      return false;
+    }
+
   const {push} = useRouter();
+
+
+  const onSubmit = async()=>{
+      
+      
+      const invalidFields = onCheckFields()
+      if(invalidFields){
+        return;
+      }
+
+      const payload :UserDto = {
+        nome: nome,
+        email: email,
+        senha: password
+      }
+      
+      try{
+        await userService.create(payload)
+        showMessage({message: "Usuário cadastrado", type: "success"})
+        push("/login")
+       
+      }catch(e){
+        const error = e as Error;
+        showMessage({ message: error.message || "Erro ao cadastrar usuário", type: "error"})
+        
+      }
+      
+   
+    } 
+
+
+
   return (
 
     <div className="min-h-screen flex items-center justify-center bg-[#EBE9E1]">
@@ -92,8 +141,9 @@ const Cadastro = () => {
           <div className="flex justify-center mb-4">    
 
             <Button
-             onClick={()=>{console.log("nada")}}
+             onClick={onSubmit}
              text="Criar conta"
+             className="text-white"
             />
 
             
