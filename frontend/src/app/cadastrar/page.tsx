@@ -85,7 +85,11 @@ const Cadastro = () => {
         </h2>
 
 
-        <form className="flex flex-col" onSubmit={(e) => e.preventDefault()}>
+        <form className="flex flex-col" onSubmit={(e) => {
+          e.preventDefault();
+          onSubmit();
+          
+        }}>
           
 
           <div className="mb-1">

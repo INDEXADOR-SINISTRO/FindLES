@@ -21,6 +21,7 @@ const Login = () => {
   const {showMessage} = useSnackbar()
   const {push} = useRouter();
   const { signIn } = useContext(AuthContext);
+  const [submitWasClicked,setSubmitWasClicked] = useState<boolean>(false)
 
   const onCheckFields = ()=>{
       if (email === "" || password === ""){
@@ -38,6 +39,7 @@ const Login = () => {
         showMessage({ message: "Preencha todos os campos", type: "error" })
         return;
       }
+      setSubmitWasClicked(true);
       setIsLoading(true);
       const payload :authDto = {
         email: email,
@@ -70,7 +72,10 @@ const Login = () => {
           FindLES
         </h1>*/}
 
-        <form className="flex flex-col" onSubmit={(e) => e.preventDefault()}>
+        <form className="flex flex-col" onSubmit={(e) => {
+          e.preventDefault();
+          onSubmit();
+        }}>
           
           <div className="mb-4">
             
@@ -80,6 +85,7 @@ const Login = () => {
                 onChange={(e)=>{setEmail(e.target.value)}}
                 label="E-mail"
                 value={email}
+                showError={email === "" && submitWasClicked}
             />
             
           </div>
@@ -92,6 +98,7 @@ const Login = () => {
                 label="Senha"
                 value={password}
                 isPassword={true}
+                showError={password === "" && submitWasClicked}
             />
           </div>
 

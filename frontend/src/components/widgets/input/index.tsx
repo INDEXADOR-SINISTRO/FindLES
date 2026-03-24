@@ -83,7 +83,9 @@ const Input = ({
                     )}
                     <div className='absolute right-4 top-8'>
                     <button
-                    onClick={()=>{
+                    tabIndex={-1}
+                    onClick={(e)=>{
+                      e.preventDefault()
                       if (escondido === "text"){
                         setEscondido("password")
                       }else{
