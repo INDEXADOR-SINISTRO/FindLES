@@ -147,7 +147,7 @@ const Cadastro = () => {
           <div className="flex justify-center mb-4">    
 
             <Button
-             onClick={onSubmit}
+             onClick={()=>{}}
              text="Criar conta"
              className="text-white"
             />

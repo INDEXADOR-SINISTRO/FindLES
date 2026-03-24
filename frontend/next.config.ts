@@ -5,9 +5,7 @@ const nextConfig: NextConfig = {
     position: "bottom-right"
 
   },
-  experimental: {
-
-  },
+  reactStrictMode: false,
   async redirects() {
     return [
       {

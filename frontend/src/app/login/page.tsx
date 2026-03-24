@@ -112,7 +112,7 @@ const Login = () => {
           <div className="flex justify-center mb-4">    
             <a href="/admin">
                 <Button
-                onClick={onSubmit}
+                onClick={()=>{}}
                 text="Entrar"
                 className="text-white"
                 />
