@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import Link from "next/link";
 
 import { ChevronUpIcon } from "@heroicons/react/24/solid";
@@ -16,6 +16,7 @@ import { setPerfil } from "@/store/modules/perfil";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { Route } from "@mui/icons-material";
 import { AuthContext } from "@/context/AuthContext";
+import { tokenDecoded } from "@/types/user";
 
 export const Header = ({ titulo }: { titulo: string }) => {
   const [isCollapside, setIsCollapside] = useState<boolean>(false);
@@ -28,8 +29,16 @@ export const Header = ({ titulo }: { titulo: string }) => {
 
   const { push } = useRouter();
   const {getUser, signOut} = useContext(AuthContext)
-  const user = getUser();
-  console.log(user)
+
+
+  const [userData, setUserData] = useState<tokenDecoded | null>(null);
+
+  useEffect(() => {
+    const user = getUser();
+    setUserData(user);
+  }, [getUser]);
+
+  console.log(userData)
 
 
   const usuario = true;
@@ -99,7 +108,7 @@ export const Header = ({ titulo }: { titulo: string }) => {
         {usuario && (
           <div className="flex gap-3 items-center md:justify-center lg:absolute right-28 mt-2 mb-2">
             <div>
-              <p className="text-white">Olá, {user?.nome}</p>
+              <p className="text-white">Olá, {userData?.nome}</p>
 
             </div>
             

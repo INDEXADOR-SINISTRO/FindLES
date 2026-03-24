@@ -1,18 +1,60 @@
 import { ArrowUpIcon, DocumentIcon, DocumentTextIcon } from '@heroicons/react/24/solid';
 import React, { useState, useRef, MouseEventHandler } from 'react';
 import Button from '../widgets/Button';
+import { useSnackbar } from '../widgets/snackbar';
+import apiClient from '@/lib/utils/axios';
+import { documentoService } from '@/lib/services/documento';
+import { TrashIcon } from '@heroicons/react/24/outline';
 
 
 type AreaUploadProps = {
-  onClick: MouseEventHandler | undefined;
+  idCategoria?: number | null;
 };
 
-export default function AreaDeUpload({onClick}: AreaUploadProps) {
+export default function AreaDeUpload({idCategoria}: AreaUploadProps) {
   const [arquivos, setArquivos] = useState<File[]>([]);
   // NOVO: Estado para controlar a cor da caixa quando o arquivo estiver "sobreando" ela
   const [arrastando, setArrastando] = useState(false); 
   
   const inputArquivoRef = useRef<HTMLInputElement>(null);
+
+  const {showMessage} = useSnackbar();
+
+
+  const onSubmit = async()=>{
+  
+  const idCategoriaSelecionada = idCategoria; 
+
+  // 1. Cria o pacote FormData
+  const formData = new FormData();
+
+  // 2. Coloca os arquivos dentro do pacote
+  // O nome 'arquivos' DEVE ser exatamente o mesmo nome do parâmetro no seu Controller Java
+  arquivos.forEach((arquivo) => {
+    formData.append('arquivos', arquivo);
+  });
+
+  // 3. Coloca os outros dados que o backend pede
+  // O FormData só aceita strings ou Blobs, então convertemos o número para string
+  formData.append('idCategoria', String(idCategoriaSelecionada));
+
+
+  try {
+
+    // 4. Faz o POST para o seu backend
+    // O Axios é inteligente: ao ver um FormData, ele já muda o Content-Type para 'multipart/form-data'
+    await documentoService.upload(arquivos, idCategoria);
+
+    showMessage({ message: "Arquivos enviados com sucesso!", type: "success" });
+    
+    // Limpa a tela após o sucesso
+    setArquivos([]); 
+
+  } catch (error) {
+    
+    showMessage({ message: "Falha ao enviar os documentos.", type: "error" });
+  } 
+}
 
   // Função do input invisível (Mantida)
   const lidarComSelecao = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -110,8 +152,9 @@ export default function AreaDeUpload({onClick}: AreaUploadProps) {
                             <p className="text-xs text-gray-500">{(arquivo.size / 1024 / 1024).toFixed(2)} MB</p>
                         </div>
                     </div>
-                    <button onClick={() => removerArquivo(index)} className="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-50 transition" title="Remover arquivo">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                    <button onClick={() => removerArquivo(index)} className="text-red-500 cursor-pointer hover:text-red-700 p-1 rounded-full hover:bg-red-50 transition" title="Remover arquivo">
+                       
+                        <TrashIcon className="w-5 h-5"></TrashIcon>
                     </button>
                 </li>
              ))}
@@ -133,7 +176,7 @@ export default function AreaDeUpload({onClick}: AreaUploadProps) {
             />
             <Button
             text='Indexar'
-            onClick={onClick}
+            onClick={onSubmit}
             className="text-white"
             />
             </div>

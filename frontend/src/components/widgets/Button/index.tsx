@@ -44,7 +44,7 @@ const Button = ({
                     className={isLoading ?  style + className + " cursor-not-allowed text-gray-400" :  style + className + " cursor-pointer"}
                     disabled={isLoading}
                 >
-                    <div className='flex justify-center w-full'>
+                    <div className='flex justify-center items-center w-full'>
                         {isLoading && spin}
                         {text}
                     </div>

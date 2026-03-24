@@ -40,7 +40,7 @@ const Login = () => {
         return;
       }
       setSubmitWasClicked(true);
-      setIsLoading(true);
+      
       const payload :authDto = {
         email: email,
         senha: password
@@ -50,6 +50,7 @@ const Login = () => {
       }catch(e){
         const error = e as Error;
         showMessage({message:"E-mail ou senha incorretos.", type:"error"});
+      }finally{
         
       }
     }

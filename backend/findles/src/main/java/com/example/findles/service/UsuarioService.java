@@ -27,7 +27,7 @@ public class UsuarioService {
     private PasswordEncoder passwordEncoder;
 
     @Autowired
-    private UsuarioMapper usuarioMapper; // <-- Injetando o nosso Mapper!
+    private UsuarioMapper usuarioMapper;
 
     public Usuario cadastrarUsuario(DadosCadastroUsuarioDTO dados) {
         logger.info("Tentando cadastrar usuário com e-mail: {}", dados.email());
