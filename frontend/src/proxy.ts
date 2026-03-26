@@ -65,7 +65,7 @@ export function proxy(request: NextRequest) {
   console.log(tokenDecodificado)
 
   // Se tentar acessar o /dashboard SEM token, manda de volta pro / (login)
-  if (!token || (!tokenDecodificado || !tokenDecodificado.isValidToken) && !(pathname.startsWith('/login') || pathname.startsWith("/cadastrar") || pathname.startsWith("/recuperar-senha") )) {
+  if ((!token || (!tokenDecodificado || !tokenDecodificado.isValidToken)) && !(pathname.startsWith('/login') || pathname.startsWith("/cadastrar") || pathname.startsWith("/recuperar-senha") )) {
     return NextResponse.redirect(new URL('/', request.url));
   }
 
@@ -76,7 +76,7 @@ export function proxy(request: NextRequest) {
 
       if (
         tokenDecodificado.role === "ROLE_USER" &&
-        pathname.startsWith("/admin")
+        pathname.includes("/admin")
       ) {
         return NextResponse.redirect(new URL('/busca', request.url));
       }

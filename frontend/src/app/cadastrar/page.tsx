@@ -18,6 +18,9 @@ const Cadastro = () => {
   const [confirmPassword, setConfirmPassword] = useState<string>("");
   const [nome, setNome] = useState<string>("");
 
+  
+  const [submitWasClicked,setSubmitWasClicked] = useState<boolean>(false)
+
   const {showMessage} = useSnackbar();
 
   const onCheckFields = ()=>{
@@ -39,6 +42,8 @@ const Cadastro = () => {
       
       
       const invalidFields = onCheckFields()
+
+      setSubmitWasClicked(true);
       if(invalidFields){
         return;
       }
@@ -100,6 +105,7 @@ const Cadastro = () => {
                 onChange={(e)=>{setNome(e.target.value)}}
                 label="Nome"
                 value={nome}
+                showError={nome === "" && submitWasClicked}
             />
             
           </div>
@@ -112,6 +118,7 @@ const Cadastro = () => {
                 onChange={(e)=>{setEmail(e.target.value)}}
                 label="E-mail"
                 value={email}
+                showError={email === "" && submitWasClicked}
             />
             
           </div>
@@ -125,6 +132,7 @@ const Cadastro = () => {
                 label="Senha"
                 value={password}
                 isPassword={true}
+                showError={password === "" && submitWasClicked}
             />
           </div>
 
@@ -136,6 +144,7 @@ const Cadastro = () => {
                 label="Confirmar senha"
                 value={confirmPassword}
                 isPassword={true}
+                showError={confirmPassword === "" && submitWasClicked}
             />
           </div>
 
@@ -147,7 +156,7 @@ const Cadastro = () => {
           <div className="flex justify-center mb-4">    
 
             <Button
-             onClick={onSubmit}
+             onClick={()=>{}}
              text="Criar conta"
              className="text-white"
             />

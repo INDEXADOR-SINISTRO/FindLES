@@ -34,12 +34,12 @@ const Login = () => {
       
       
       const invalidFields = onCheckFields() 
-
+      setSubmitWasClicked(true);
       if(invalidFields){
         showMessage({ message: "Preencha todos os campos", type: "error" })
         return;
       }
-      setSubmitWasClicked(true);
+      
       
       const payload :authDto = {
         email: email,
