@@ -61,8 +61,7 @@ export function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   const tokenDecodificado = decodificarToken(token)
-  console.log("debug")
-  console.log(tokenDecodificado)
+
 
   // Se tentar acessar o /dashboard SEM token, manda de volta pro / (login)
   if ((!token || (!tokenDecodificado || !tokenDecodificado.isValidToken)) && !(pathname.startsWith('/login') || pathname.startsWith("/cadastrar") || pathname.startsWith("/recuperar-senha") )) {

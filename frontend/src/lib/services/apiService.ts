@@ -3,7 +3,7 @@ import { AxiosError, AxiosRequestConfig } from 'axios'
 
 
 export interface ApiResponse<T> {
-  data: T;
+  content: T;
   status: number;
   statusText: string;
   headers: object;
@@ -12,11 +12,13 @@ export interface ApiResponse<T> {
 }
 
 export interface PaginatedResponse<T> {
-  data: T[]
-  total: number
-  page: number
-  limit: number
-  totalPages: number
+  content: T[]
+  page: {
+    number: number;
+    size: number;
+    totalElements: number;
+    totalPages: number;
+  }
 }
 
 class ApiService {
@@ -25,8 +27,8 @@ class ApiService {
    */
   async get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
     try {
-      const response : any= await apiClient.get<ApiResponse<T>>(url, config)
-      return response.data
+      const response: any = await apiClient.get<ApiResponse<T>>(url, config)
+      return response.content
     } catch (error) {
       throw this.handleError(error)
     }
@@ -42,7 +44,7 @@ class ApiService {
   ): Promise<T> {
     try {
       const response = await apiClient.post<ApiResponse<T>>(url, data, config)
-      return response.data.data
+      return response.data.content
     } catch (error) {
       throw this.handleError(error)
     }
@@ -58,7 +60,7 @@ class ApiService {
   ): Promise<T> {
     try {
       const response = await apiClient.put<ApiResponse<T>>(url, data, config)
-      return response.data.data
+      return response.data.content
     } catch (error) {
       throw this.handleError(error)
     }
@@ -74,7 +76,7 @@ class ApiService {
   ): Promise<T> {
     try {
       const response = await apiClient.patch<ApiResponse<T>>(url, data, config)
-      return response.data.data
+      return response.data.content
     } catch (error) {
       throw this.handleError(error)
     }
@@ -86,7 +88,7 @@ class ApiService {
   async delete<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
     try {
       const response = await apiClient.delete<ApiResponse<T>>(url, config)
-      return response.data.data
+      return response.data.content
     } catch (error) {
       throw this.handleError(error)
     }
@@ -98,20 +100,18 @@ class ApiService {
   async getPaginated<T>(
     url: string,
     page: number = 1,
-    limit: number = 10,
     filters?: Record<string, any>
   ): Promise<PaginatedResponse<T>> {
     try {
       const params = {
         page,
-        limit,
         ...filters,
       }
-      const response = await apiClient.get<ApiResponse<PaginatedResponse<T>>>(
+      const response = await apiClient.get<PaginatedResponse<T>>(
         url,
         { params }
       )
-      return response.data.data
+      return response.data
     } catch (error) {
       throw this.handleError(error)
     }
@@ -141,7 +141,7 @@ class ApiService {
           'Content-Type': 'multipart/form-data',
         },
       })
-      return response.data.data
+      return response.data.content
     } catch (error) {
       throw this.handleError(error)
     }
@@ -166,6 +166,28 @@ class ApiService {
       throw this.handleError(error)
     }
   }
+  
+  async openFile(url: string): Promise<void> {
+    try {
+      // Faz a requisição enviando o seu Token JWT (o apiClient já faz isso)
+      const response = await apiClient.get(url, {
+        responseType: 'blob', // Importante: diz ao Axios que é um arquivo, não um JSON
+      })
+
+      // Cria um link temporário na memória do navegador com o arquivo
+      const file = new Blob([response.data], { type: response.headers['content-type'] })
+      const fileURL = window.URL.createObjectURL(file)
+      
+      // Abre esse link temporário em uma nova aba!
+      window.open(fileURL, '_blank')
+
+      // Opcional: Limpa a memória depois de um tempo
+      setTimeout(() => window.URL.revokeObjectURL(fileURL), 10000)
+
+    } catch (error) {
+      throw this.handleError(error)
+    }
+  }
 
   /**
    * Tratamento de erros centralizado
@@ -176,11 +198,11 @@ class ApiService {
         error.response?.data?.message ||
         error.message ||
         'Ocorreu um erro na requisição'
-      
-      
+
+
       return new Error(message)
     }
-    
+
     return new Error('Erro desconhecido')
   }
 }

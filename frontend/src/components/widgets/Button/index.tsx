@@ -36,7 +36,7 @@ const Button = ({
     text  = "confirmar"
 }:ButtonProps) => {
 
-    const style = " bg-[#404040] py-2 px-16 text-lg hover:bg-[#2b2b2b] transition-colors hover:cursor-pointer "
+    const style = " bg-[#404040] py-1.5 px-16 text-lg hover:bg-[#2b2b2b] transition-colors hover:cursor-pointer shadow-[2px_2px_5px_rgba(0,0,0,0.30)] font-medium "
     const renderButton = useMemo(()=>{
         return (
                 <button

@@ -175,7 +175,7 @@ export default function AreaDeUpload({idCategoria}: AreaUploadProps) {
             className="bg-neutral-100  hover:bg-neutral-200 text-[#404040] border-2 border-[#3F3E3E]"
             />
             <Button
-            text='Indexar'
+            text='Salvar'
             onClick={onSubmit}
             className="text-white"
             />

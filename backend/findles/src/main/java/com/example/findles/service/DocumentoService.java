@@ -20,9 +20,19 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
+
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import java.net.MalformedURLException;
+
+import com.example.findles.dto.DadosListagemDocumentoDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 public class DocumentoService {
@@ -114,5 +124,46 @@ public class DocumentoService {
             hexString.append(hex);
         }
         return hexString.toString();
+    }
+
+    public Page<DadosListagemDocumentoDTO> listar(String titulo, Integer idCategoria, LocalDate dataDe, LocalDate dataAte, Pageable paginacao) {
+
+        // Converte as datas para pegar o início do dia e o final do dia
+        LocalDateTime dataDeConvertida = (dataDe != null) ? dataDe.atStartOfDay() : null;
+        LocalDateTime dataAteConvertida = (dataAte != null) ? dataAte.atTime(LocalTime.MAX) : null;
+
+        // O repositório faz todo o trabalho pesado de ignorar o que for null
+        Page<Documento> documentosPaginados = repository.buscarComFiltrosDinamicos(
+                titulo,
+                idCategoria,
+                dataDeConvertida,
+                dataAteConvertida,
+                paginacao
+        );
+
+        return documentosPaginados.map(DadosListagemDocumentoDTO::new);
+    }
+
+    public Resource carregarArquivoComoRecurso(Integer id) {
+        // 1. Busca no banco de dados
+        Documento doc = repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Documento não encontrado com o ID: " + id));
+
+        try {
+            // 2. Pega o caminho físico salvo no banco (ex: "uploads/documentos/arquivo.pdf")
+            Path caminhoArquivo = Paths.get(doc.getCaminhoArquivo()).normalize();
+
+            // 3. Transforma o arquivo em um Recurso do Spring
+            Resource recurso = new UrlResource(caminhoArquivo.toUri());
+
+            // 4. Verifica se o arquivo realmente existe na pasta e pode ser lido
+            if (recurso.exists() && recurso.isReadable()) {
+                return recurso;
+            } else {
+                throw new RuntimeException("Arquivo não encontrado ou corrompido no servidor.");
+            }
+        } catch (MalformedURLException e) {
+            throw new RuntimeException("Erro ao processar o caminho do arquivo.", e);
+        }
     }
 }

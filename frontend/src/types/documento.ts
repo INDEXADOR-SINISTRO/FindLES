@@ -40,3 +40,15 @@ export interface documentoDto {
     hashConteudo: string;
     numeroVersao: string;
 }
+
+export interface listagemDocumentoDto {
+    id: number;
+    nomeCategoria: string;
+    caminhoArquivo: string;
+    nomeStatus: string;
+    nomeUsuario: string;
+    titulo: string;
+    atualizadoEm: string;
+    criadoEm: string;
+    numeroVersao: string;
+}

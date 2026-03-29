@@ -1,4 +1,5 @@
-import { apiService } from '../apiService'
+import { documentoDto, listagemDocumentoDto } from '@/types/documento'
+import { apiService, PaginatedResponse } from '../apiService'
 // Importe o seu DTO de documento se você tiver um
 // import { DocumentDto } from '@/types/document'
 
@@ -46,6 +47,20 @@ class DocumentoService {
    */
   async delete(id: number): Promise<void> {
     return apiService.delete<void>(`${this.baseUrl}/${id}`)
+  }
+
+  async getAll(
+    page: number = 1,
+    filters: Record<string, any> = {
+        size: 10,              
+        sort: 'criadoEm,desc'  
+      },
+  ): Promise<PaginatedResponse<listagemDocumentoDto>> {
+    return apiService.getPaginated<listagemDocumentoDto>(this.baseUrl, page, filters)
+  }
+
+  async AbrirDocumento(id: number): Promise<void> {
+    return apiService.openFile(this.baseUrl + "/" + String(id))
   }
 }
 

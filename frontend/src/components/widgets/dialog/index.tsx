@@ -27,13 +27,13 @@ export default function Dialog({ title, children, isOpen, onClose, onConfirm, on
           <div className="absolute inset-0 bg-opacity-30 backdrop-blur-sm"></div>
 
           {/* Conteúdo do Dialog */}
-          <div className="relative bg-white border border-secondary rounded-lg shadow-lg max-w-lg w-full h-screen md:h-auto p-4 z-10 flex flex-col">
+          <div className="relative bg-[#EBE9E1] border border-[#898989]  shadow-lg max-w-lg w-full h-screen md:h-auto p-4 z-10 flex flex-col">
             {/* Cabeçalho fixo */}
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">{title}</h2>
               <button
                 onClick={onClose}
-                className="cursor-pointer text-gray-500 hover:text-black"
+                className="cursor-pointer text-[#3f3f3f] hover:text-black"
                 disabled={isLoading}
               >
                 <XMarkIcon className="w-8 h-8" />
@@ -49,7 +49,7 @@ export default function Dialog({ title, children, isOpen, onClose, onConfirm, on
             <div className="flex justify-end mt-auto pt-4">
               <Button
                 onClick={onConfirm}
-                className="bg-[#3F3E3E] hover:bg-emerald-500"
+                className="bg-[#3F3E3E] text-white"
                 isLoading={isLoading}
                 text={onConfirmText}
               />

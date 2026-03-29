@@ -80,7 +80,7 @@ export default function MainLayout({
           </>
         )}
         {!isPublic && (
-          <main className="flex min-h-screen flex-col overflow-auto">
+          <main className="flex h-screen flex-col overflow-auto">
 
             <>
               <Header titulo={"FindLES"} />

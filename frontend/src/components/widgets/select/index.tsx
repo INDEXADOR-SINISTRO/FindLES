@@ -15,6 +15,7 @@ type SelectProps = {
   label?: string;
   name?: string;
   disabled?: boolean;
+  hasDefaultValue?: boolean
 
 };
 
@@ -28,14 +29,15 @@ const Select = ({
     options = [],
     name,
     disabled = false,
+    hasDefaultValue = true,
 }:SelectProps) => {
     const desabilitado = " text-gray-400 "  
-    const style = disabled ? desabilitado + " p-[0.7rem] bg-[#EBE9E1] cursor-pointer shadow-md border  " : " p-[0.7rem] bg-[#EBE9E1] cursor-pointer shadow-md border hover:bg-[#dfddd4]"
+    const style = disabled ? desabilitado + " p-[0.7rem] bg-[#EBEAE4]  cursor-pointer shadow-[2px_2px_5px_rgba(0,0,0,0.30)] border  " : " p-[0.7rem] bg-[#EBEAE4]  cursor-pointer shadow-[2px_2px_5px_rgba(0,0,0,0.30)] border hover:bg-[#dfddd4]"
     const error = " text-red-500 "
     const renderSelect = useMemo(()=>{
         return (
             <div className={'flex flex-col text-[#3f3f3f] ' + className}>
-                { label && <label htmlFor={id} className={showError ? error : disabled ? desabilitado : ""}>{label}</label>}
+                { label && <label htmlFor={id} className={showError ? error : disabled ? desabilitado : "font-medium"}>{label}</label>}
                 <select 
                     value={value}
                     onChange={onChange}
@@ -44,7 +46,7 @@ const Select = ({
                     disabled={disabled}
                     className={showError ? ( style + " border-red-500") : ( style)}
                 >
-                    <option  value="" >Selecione...</option>
+                    {hasDefaultValue && (<option  value="" >Selecione...</option>)}
                     {
                     
                     options.map((opt, index)=> <option key={index} value={opt.value}>{opt.optionLabel} </option>)
@@ -59,7 +61,8 @@ const Select = ({
         onChange,
         showError,
         className,
-        label
+        label,
+        hasDefaultValue
     ])
 
 

@@ -29,7 +29,7 @@ const Input = ({
     isPassword = false,
 }:InputProps) => {
     const desabilitado = " text-gray-400 "
-    const baseStyle = " w-full h-10 px-2 bg-[#EBEAE4] border border-gray-600 shadow-[2px_2px_5px_rgba(0,0,0,0.30)] focus:outline-none focus:ring-1 focus:ring-gray-600 "
+    const baseStyle = " w-full h-10 px-2 bg-[#EBEAE4]  border shadow-[2px_2px_5px_rgba(0,0,0,0.30)] focus:outline-none focus:ring-1 focus:ring-gray-600 "
     const style = disabled ? desabilitado + baseStyle + " text-gray-400 " : baseStyle
     const error = " text-red-500 "
     const [escondido,setEscondido] = useState<string>("password");
@@ -39,7 +39,7 @@ const Input = ({
         if (type === 'checkbox') {
           return (
             <div className={'flex items-center gap-2 ' + className}>
-              <label htmlFor={id} className={`relative inline-flex items-center cursor-pointer ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`}>
+              <label htmlFor={id} className={`font-medium relative inline-flex items-center cursor-pointer ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`}>
                 <input
                   id={id}
                   type="checkbox"
@@ -61,7 +61,7 @@ const Input = ({
 
         return (
             <div className={'flex flex-col relative ' + className} >
-                { label && <label htmlFor={id} className={showError ? error : disabled ? desabilitado : ""}>{label}</label>}
+                { label && <label htmlFor={id} className={showError ? error : disabled ? desabilitado : "font-medium"}>{label}</label>}
                 {type === 'textarea' ? (
                     <textarea
                         id={id}

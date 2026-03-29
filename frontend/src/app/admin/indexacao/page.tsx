@@ -7,6 +7,7 @@ import Select, { OptionType } from "@/components/widgets/select";
 import { userService } from "@/lib/services/usuario";
 import apiClient from "@/lib/utils/axios";
 import { CategoriaList, StatusDocumentList } from "@/types/documento";
+import { useRouter } from 'next/navigation';
 import { useState } from "react";
 
 
@@ -15,6 +16,7 @@ import { useState } from "react";
 const Indexacao = () => {
 
   const [categoria,setCategoria] = useState<number>();
+  const {push} = useRouter();
 
 
 
@@ -30,7 +32,7 @@ const Indexacao = () => {
   return (
  
     <>
-    <div className="text-[#3f3f3f]">
+    <div className="text-[#3f3f3f] ">
 
       <h1 className="text-3xl mb-2">Anexar Documentos</h1>
       <hr className="text-[#685A22] mb-2"/>
@@ -49,6 +51,13 @@ const Indexacao = () => {
       className="mt-4"
       value={String(categoria)}
       />
+      <div className="mt-10">
+        <Button
+          onClick={()=>{push("/admin/indexacao/documentos")}}
+          text="Visualizar documentos"
+          className="text-white"
+        />
+      </div>
     </div>
     </>
   );
