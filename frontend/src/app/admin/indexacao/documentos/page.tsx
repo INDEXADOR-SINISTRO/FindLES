@@ -9,7 +9,7 @@ import { documentoService } from '@/lib/services/documento';
 import { formatarDataHora } from '@/lib/utils/date';
 import { CategoriaList, listagemDocumentoDto } from '@/types/documento';
 import { DocumentDuplicateIcon, EyeIcon, PencilIcon, PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline';
-import { ArrowLeftIcon, ChevronLeftIcon, ChevronRightIcon, FunnelIcon, HandThumbDownIcon } from '@heroicons/react/24/solid';
+import { ArrowLeftIcon, ArrowLongLeftIcon, ChevronLeftIcon, ChevronRightIcon, FunnelIcon, HandThumbDownIcon } from '@heroicons/react/24/solid';
 import React, { useEffect, useState } from 'react';
 
 
@@ -25,10 +25,11 @@ const Documentos = () => {
     const [titulo, setTitulo] = useState<string>("")
 
     const [totalPaginas, setTotalPaginas] = useState(0)
+    const [totalArquivos, setTotalArquivos] = useState(0)
     const { showMessage } = useSnackbar();
     const [nadaEncontrado, setNadaEncontrado] = useState<boolean>(false)
 
-    const [expandido, setExpandido] = useState(true);
+    const [expandido, setExpandido] = useState(false);
 
     // Estados dos formulários (para você ligar com sua requisição depois)
     const [categoria, setCategoria] = useState<string>("");
@@ -115,6 +116,7 @@ const Documentos = () => {
             }
             setDocs(response.content)
             setTotalPaginas(response.page.totalPages)
+            setTotalArquivos(response.page.totalElements)
 
         } catch (error) {
             console.error("Erro ao buscar:", error);
@@ -123,6 +125,14 @@ const Documentos = () => {
     };
 
     return (<div className="flex flex-col items-center">
+
+        <div className='w-full mb-4'>
+            
+            <a href="/admin/indexacao" className="text-sm text-gray-500 underline hover:text-gray-800 flex items-center gap-1 ">
+              <ArrowLongLeftIcon className="w-4 h-4"></ArrowLongLeftIcon>
+              voltar
+            </a>
+        </div>
 
         <div className='mb-10 flex items-end w-full'>
             <Input
@@ -245,7 +255,10 @@ const Documentos = () => {
             </div>
 
         </div>
+        {docs.length !== 0 && (<div className='w-full flex justify-end'>
+            <p className='text-[#898989] text-sm'>total de arquivos: {totalArquivos}</p>
 
+        </div>)}
         {/* Tabela com bordas externas para imitar o design da imagem */}
         {docs.length !== 0 && (<div className="overflow-x-auto border shadow-lg w-full border-[#c5c3b9]">
             <table className="w-full border-collapse text-center">
@@ -261,6 +274,9 @@ const Documentos = () => {
                         </th>
                         <th className="p-4 border-r border-[#c5c3b9] text-[#4a4a4a] font-semibold w-1/5">
                             Inserido por
+                        </th>
+                        <th className="p-4 border-r border-[#c5c3b9] text-[#4a4a4a] font-semibold w-1/8">
+                            Status
                         </th>
                         <th className="p-4 text-[#4a4a4a] font-semibold w-1/5">
                             Ações
@@ -284,6 +300,9 @@ const Documentos = () => {
                             </td>
                             <td className="p-4 border-r border-[#c5c3b9] text-[#777777] text-sm">
                                 {doc.nomeUsuario}
+                            </td>
+                            <td className="p-4 border-r border-[#c5c3b9] text-[#777777] text-sm">
+                                {doc.nomeStatus}
                             </td>
 
                             {/* BOTÕES DE AÇÃO */}

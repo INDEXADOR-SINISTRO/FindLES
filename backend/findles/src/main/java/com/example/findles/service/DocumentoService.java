@@ -70,7 +70,7 @@ public class DocumentoService {
 
         // 2. Resolvemos o Status Inicial (ID 1 = Pendente, por exemplo)
         // Como no seu banco de dados a coluna ID_STATUS_DOC é NOT NULL, precisamos preencher!
-        var statusInicial = statusRepository.getReferenceById(1);
+        var statusInicial = statusRepository.getReferenceById(3);
 
         for (MultipartFile arquivo : arquivos) {
             if (arquivo.isEmpty()) continue;

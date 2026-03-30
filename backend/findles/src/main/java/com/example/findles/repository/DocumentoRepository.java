@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 public interface DocumentoRepository extends JpaRepository<Documento, Integer> {
 
     @Query("SELECT d FROM Documento d WHERE " +
+            "d.statusDoc.id <> 2 AND " +
             "(:titulo IS NULL OR LOWER(d.titulo) LIKE LOWER(CONCAT('%', :titulo, '%'))) AND " +
             "(:idCategoria IS NULL OR d.categoria.id = :idCategoria) AND " +
             "(cast(:dataDe as timestamp) IS NULL OR d.criadoEm >= :dataDe) AND " +

@@ -10,8 +10,10 @@ import { usePathname, useRouter } from "next/navigation";
 import { SnackbarProvider } from "../widgets/snackbar";
 import { useSelector } from "react-redux";
 import { getPerfil } from "@/store/modules/perfil/selectors";
-import { useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import { LockClock } from "@mui/icons-material";
+import { AuthContext } from "@/context/AuthContext";
+import { tokenDecoded } from "@/types/user";
 
 
 export default function MainLayout({
@@ -30,7 +32,18 @@ export default function MainLayout({
   //const dispatch = useAppDispatch();
   const perfil = useSelector(getPerfil)
   console.log(perfil)
-
+  const {getUser, signOut} = useContext(AuthContext)
+  
+  
+    const [userData, setUserData] = useState<tokenDecoded | null>(null);
+  
+    useEffect(() => {
+      const user = getUser();
+      setUserData(user);
+    }, [getUser]);
+    console.log("userData")
+    console.log(userData)
+    console.log("userData")
   useEffect(() => {
     if (perfil === "Cliente") {
       push("/login")
@@ -64,20 +77,21 @@ export default function MainLayout({
   ]
 
 
-  const isPublic = !path.includes("admin")
+  const isPublic = !path.includes("/admin")
 
   return (
     <>
       <SnackbarProvider>
         {isPublic && (
-          <>
-              <div className={path.includes("busca") ? "" : "hidden"}>
+          <main className="flex h-screen flex-col overflow-auto">
+              <div className={path === "/busca" ? "" : "hidden"}>
               <Header titulo={"FindLES"} />
             </div>
-            <div>
+            <div className={path === "/busca" ? "m-4 mb-16 pb-10 lg:mt-28" : ""}
+            >
               {children}
             </div>
-          </>
+          </main>
         )}
         {!isPublic && (
           <main className="flex h-screen flex-col overflow-auto">
@@ -87,14 +101,14 @@ export default function MainLayout({
               {
                 responsiveSize !== "md" &&
                 responsiveSize !== "sm" && (
-                  <Sidebar className={perfil === "Cliente" ? "hidden" : ""} routes={routes} />
+                  <Sidebar className={""} routes={routes} />
                 )}
-              <div className={perfil === "Cliente" ? "m-4 mb-16 pb-10 lg:mt-28" : "m-4 mb-16 md:mb-10 lg:ml-80 lg:mr-6 pb-10 lg:mt-28"} >
+              <div className={"m-4 mb-16 md:mb-10 lg:ml-80 lg:mr-6 pb-10 lg:mt-28"} >
                 {children}
               </div>
               {
                 (responsiveSize === "md" || responsiveSize === "sm") && (
-                  <Navbar className={perfil === "Cliente" ? "hidden" : ""} routes={routes} />
+                  <Navbar className={""} routes={routes} />
                 )}
             </>
           </main>

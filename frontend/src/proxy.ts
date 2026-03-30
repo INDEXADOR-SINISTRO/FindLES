@@ -75,7 +75,7 @@ export function proxy(request: NextRequest) {
 
       if (
         tokenDecodificado.role === "ROLE_USER" &&
-        pathname.includes("/admin")
+        pathname.includes("admin")
       ) {
         return NextResponse.redirect(new URL('/busca', request.url));
       }
