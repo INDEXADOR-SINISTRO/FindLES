@@ -62,6 +62,12 @@ class DocumentoService {
   async AbrirDocumento(id: number): Promise<void> {
     return apiService.openFile(this.baseUrl + "/" + String(id))
   }
+
+
+
+  async indexarDocumentos(): Promise<void> {
+      return apiService.post(this.baseUrl + "/indexar-pendentes")
+    }
 }
 
 export const documentoService = new DocumentoService()

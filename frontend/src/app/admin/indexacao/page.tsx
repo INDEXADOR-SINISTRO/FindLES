@@ -54,7 +54,7 @@ const Indexacao = () => {
       <div className="mt-10">
         <Button
           onClick={()=>{push("/admin/indexacao/documentos")}}
-          text="Visualizar documentos"
+          text="Indexar documentos"
           className="text-white"
         />
       </div>

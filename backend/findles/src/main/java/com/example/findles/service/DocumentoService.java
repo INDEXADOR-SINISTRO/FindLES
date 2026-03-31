@@ -1,11 +1,10 @@
 package com.example.findles.service;
 
-import com.example.findles.domain.Categoria;
-import com.example.findles.domain.Documento;
+import com.example.findles.domain.*;
 import com.example.findles.repository.CategoriaRepository;
 import com.example.findles.repository.DocumentoRepository;
 import com.example.findles.repository.StatusDocumentoRepository;
-import com.example.findles.domain.Usuario;
+import com.example.findles.repository.TermoRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,12 +22,12 @@ import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import java.net.MalformedURLException;
+import java.util.stream.Collectors;
 
 import com.example.findles.dto.DadosListagemDocumentoDTO;
 import org.springframework.data.domain.Page;
@@ -42,6 +41,9 @@ public class DocumentoService {
     @Autowired
     private DocumentoRepository repository;
 
+    @Autowired
+    private TermoRepository termoRepository;
+
     // NOVO: Repositório para fazer a ligação com a Categoria
     @Autowired
     private CategoriaRepository categoriaRepository;
@@ -49,6 +51,12 @@ public class DocumentoService {
     // NOVO: Repositório para o Status (já explico abaixo)
     @Autowired
     private StatusDocumentoRepository statusRepository;
+
+    @Autowired
+    private ExtratorTextoService extratorService;
+
+    @Autowired
+    private ProcessadorTextoService processadorTextoService;
 
     private final String DIRETORIO_UPLOADS = "uploads/documentos/";
 
@@ -165,5 +173,66 @@ public class DocumentoService {
         } catch (MalformedURLException e) {
             throw new RuntimeException("Erro ao processar o caminho do arquivo.", e);
         }
+
+    }
+
+    @Transactional
+    public int indexarDocumentosPendentes() {
+        // 1. Busca todos os documentos com status PENDENTE (ID 3)
+        List<Documento> documentosPendentes = repository.findByStatusDocId(3);
+
+        // Se a lista vier vazia, já encerramos por aqui
+        if (documentosPendentes.isEmpty()) {
+            return 0;
+        }
+
+        // 2. Busca o status ATIVO (ID 1) apenas uma vez para economizar idas ao banco
+        StatusDocumento statusAtivo = statusRepository.findById(1)
+                .orElseThrow(() -> new IllegalStateException("Status ATIVO não configurado no banco."));
+
+        int indexadosComSucesso = 0;
+
+        // 3. Inicia a fila de processamento
+        for (Documento documento : documentosPendentes) {
+            try {
+                logger.info("Iniciando extração do documento ID: {}", documento.getId());
+
+                // 1. Extração e Processamento (Pipeline NLP que criamos)
+                String textoCru = extratorService.extrairTextoDoPdf(documento.getCaminhoArquivo());
+                String textoProcessado = processadorTextoService.processar(textoCru);
+
+                // 2. Quebrar a string processada em tokens únicos (Set para evitar duplicatas no mesmo doc)
+                Set<String> tokens = Arrays.stream(textoProcessado.split(" "))
+                        .filter(token -> !token.trim().isEmpty()) // Ignora espaços em branco acidentais
+                        .collect(Collectors.toSet()); // O toSet() padrão ignora duplicatas sem dar erro!
+
+                // 3. Vincular Termos ao Documento
+                Set<Termo> termosDoDocumento = new HashSet<>();
+                for (String valorToken : tokens) {
+                    if (valorToken.isEmpty()) continue;
+
+                    // Busca o termo no vocabulário global ou cria se não existir
+                    Termo termo = termoRepository.findByTermoNormalizado(valorToken)
+                            .orElseGet(() -> termoRepository.save(new Termo(valorToken)));
+
+                    termosDoDocumento.add(termo);
+                }
+
+                // 4. Salvar as relações e atualizar o documento
+                documento.setTextoCru(textoCru);
+                documento.setTermos(termosDoDocumento); // O JPA cuidará do INSERT na INDICE_INVERTIDO
+                documento.setStatusDoc(statusAtivo);
+
+                repository.save(documento);
+                indexadosComSucesso++;
+                logger.info("Documento ID: {} indexado com sucesso!", documento.getId());
+
+            } catch (Exception e) {
+                // Se der erro em UM arquivo, logamos o erro, mas o laço FOR continua para o próximo!
+                logger.error("Falha ao indexar documento ID {}: {}", documento.getId(), e.getMessage());
+            }
+        }
+
+        return indexadosComSucesso;
     }
 }

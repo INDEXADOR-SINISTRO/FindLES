@@ -80,4 +80,24 @@ public class DocumentoController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + arquivo.getFilename() + "\"")
                 .body(arquivo);
     }
+
+    @PostMapping("/indexar-pendentes")
+    public ResponseEntity<String> iniciarIndexacaoEmLote() {
+        try {
+            // O Service faz todo o trabalho pesado (Tika + Update no Postgres) e devolve o total de sucessos
+            int quantidadeIndexada = documentoService.indexarDocumentosPendentes();
+
+            // A regra exata que você pediu: se for 0, avisa que não tinha nada
+            if (quantidadeIndexada == 0) {
+                return ResponseEntity.ok("Não tinham documentos para indexar.");
+            }
+
+            // Se processou 1 ou mais, devolve a mensagem de sucesso com a quantidade
+            return ResponseEntity.ok(quantidadeIndexada + " documento(s) indexado(s) com sucesso e atualizado(s) para ATIVO!");
+
+        } catch (Exception e) {
+            // Para capturar qualquer erro fatal que escape do loop de processamento
+            return ResponseEntity.internalServerError().body("Erro interno na rotina de indexação: " + e.getMessage());
+        }
+    }
 }

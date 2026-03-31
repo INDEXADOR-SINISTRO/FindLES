@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Table(name = "DOCUMENTO")
 @Entity(name = "Documento")
@@ -56,4 +58,15 @@ public class Documento {
 
     @Column(name = "NUMERO_VERSAO", nullable = false, length = 50)
     private String numeroVersao;
+
+    @Column(name = "TEXTO_CRU", nullable = true, columnDefinition = "TEXT")
+    private String textoCru;
+
+    @ManyToMany
+    @JoinTable(
+            name = "INDICE_INVERTIDO",
+            joinColumns = @JoinColumn(name = "ID_DOCUMENTO"),
+            inverseJoinColumns = @JoinColumn(name = "ID_TERMO")
+    )
+    private Set<Termo> termos = new HashSet<>();
 }

@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public interface DocumentoRepository extends JpaRepository<Documento, Integer> {
 
@@ -22,4 +23,6 @@ public interface DocumentoRepository extends JpaRepository<Documento, Integer> {
             @Param("dataDe") LocalDateTime dataDe,
             @Param("dataAte") LocalDateTime dataAte,
             Pageable pageable);
+
+    List<Documento> findByStatusDocId(Integer idStatus);
 }

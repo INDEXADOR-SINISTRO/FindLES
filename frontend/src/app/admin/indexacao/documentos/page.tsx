@@ -90,6 +90,14 @@ const Documentos = () => {
         }
     };
 
+    const handleIndexar = async( )=>{
+        try{
+            await documentoService.indexarDocumentos();
+        }catch(error){
+            showMessage({ message: "Não foi possível indexar documentos.", type: "error" });
+        }
+    }
+
 
     useEffect(() => {
         
@@ -100,6 +108,7 @@ const Documentos = () => {
     const buscarDocumentos = async (titulo: string, paginaAtual: number, size: number, categoria: string,dataDe: string, dataAte: string) => {
         try {
             setNadaEncontrado(false)
+            setPaginaAtual(1)
             const response = await documentoService.getAll(
                 paginaAtual - 1,
                 {
@@ -126,12 +135,25 @@ const Documentos = () => {
 
     return (<div className="flex flex-col items-center">
 
-        <div className='w-full mb-4'>
+        <div className='w-full mb-4 flex justify-between items-center'>
             
             <a href="/admin/indexacao" className="text-sm text-gray-500 underline hover:text-gray-800 flex items-center gap-1 ">
               <ArrowLongLeftIcon className="w-4 h-4"></ArrowLongLeftIcon>
               voltar
             </a>
+            <div className='flex gap-2'>
+            <Button
+            onClick={handleIndexar}
+            className='text-white text-sm '
+            text='Indexar'
+            />
+
+            <Button
+            onClick={()=>{}}
+            className='bg-neutral-100  hover:bg-neutral-200 text-[#404040] border border-[#3F3E3E] text-sm '
+            text='Reindexar'
+            />
+            </div>
         </div>
 
         <div className='mb-10 flex items-end w-full'>
@@ -145,7 +167,7 @@ const Documentos = () => {
             />
             <Button
                 onClick={() => { buscarDocumentos(titulo, 1, size,categoria,dataDe,dataAte) }}
-                className='bg-[#3f3f3f] text-white '
+                className=" text-white "
                 text='Buscar'
             />
         </div>
