@@ -51,8 +51,8 @@ export default function AreaDeUpload({idCategoria}: AreaUploadProps) {
     setArquivos([]); 
 
   } catch (error) {
-    
-    showMessage({ message: "Falha ao enviar os documentos.", type: "error" });
+    const erro = error as Error
+    showMessage({ message: erro.message, type: "error" });
   } 
 }
 

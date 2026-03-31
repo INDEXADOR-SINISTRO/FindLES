@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import React, { useContext, useEffect, useState } from "react";
 import Link from "next/link";
 
-import { ChevronUpIcon } from "@heroicons/react/24/solid";
+import { ChevronUpIcon, UserIcon } from "@heroicons/react/24/solid";
 import useResponsiveDetect from "@/hooks/useResponsiveDetect";
 import logo from "@/assets/logo_FindLES.png";
 
@@ -107,7 +107,8 @@ export const Header = ({ titulo }: { titulo: string }) => {
         </div>
         {usuario && (
           <div className="flex gap-3 items-center md:justify-center lg:absolute right-28 mt-2 mb-2">
-            <div>
+            <div className="flex items-center gap-2">
+              <UserIcon className="w-5 h-5 text-white"></UserIcon>
               <p className="text-white">Olá, {userData?.nome}</p>
 
             </div>

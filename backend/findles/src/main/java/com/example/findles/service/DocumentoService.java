@@ -27,6 +27,7 @@ import java.util.*;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import java.net.MalformedURLException;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.example.findles.dto.DadosListagemDocumentoDTO;
@@ -72,12 +73,10 @@ public class DocumentoService {
         // 1. Resolvemos a Categoria ANTES do loop (para não repetir processamento)
         Categoria categoriaSelecionada = null;
         if (idCategoria != null) {
-            // getReferenceById cria apenas a referência para a Foreign Key sem fazer um SELECT no banco
             categoriaSelecionada = categoriaRepository.getReferenceById(idCategoria);
         }
 
-        // 2. Resolvemos o Status Inicial (ID 1 = Pendente, por exemplo)
-        // Como no seu banco de dados a coluna ID_STATUS_DOC é NOT NULL, precisamos preencher!
+        // 2. Resolvemos o Status Inicial (ID 3 = Pendente)
         var statusInicial = statusRepository.getReferenceById(3);
 
         for (MultipartFile arquivo : arquivos) {
@@ -89,13 +88,22 @@ public class DocumentoService {
 
             try {
                 String nomeOriginal = arquivo.getOriginalFilename();
+
+                // 3. Calcula o hash ANTES de salvar no disco físico
+                String hashConteudo = calcularHash(arquivo.getBytes());
+
+                // 4. A NOVA VALIDAÇÃO: Consulta o banco de dados
+                if (repository.existsByHashConteudo(hashConteudo)) {
+                    throw new IllegalArgumentException("O arquivo '" + nomeOriginal + "' já foi inserido anteriormente no sistema (conteúdo duplicado).");
+                }
+
+                // 5. Como o arquivo passou na validação, agora sim gravamos no HD do servidor
                 String nomeUnico = UUID.randomUUID() + "_" + nomeOriginal;
                 Path caminhoFisico = Paths.get(DIRETORIO_UPLOADS + nomeUnico);
 
                 Files.copy(arquivo.getInputStream(), caminhoFisico, StandardCopyOption.REPLACE_EXISTING);
 
-                String hashConteudo = calcularHash(arquivo.getBytes());
-
+                // 6. Monta a entidade e salva no banco
                 Documento doc = new Documento();
                 doc.setTitulo(nomeOriginal.substring(0, Math.min(nomeOriginal.length(), 50)));
                 doc.setCaminhoArquivo(caminhoFisico.toString());
@@ -105,18 +113,22 @@ public class DocumentoService {
                 doc.setAtualizadoEm(LocalDateTime.now());
                 doc.setInseridoPor(usuarioLogado);
 
-                // Setando as chaves estrangeiras que acabamos de preparar
-                doc.setCategoria(categoriaSelecionada); // Pode ser a referência ou null
-                doc.setStatusDoc(statusInicial);        // Obrigatório (NOT NULL no seu BD)
+                doc.setCategoria(categoriaSelecionada);
+                doc.setStatusDoc(statusInicial);
 
                 repository.save(doc);
 
+            } catch (IllegalArgumentException e) {
+                // Captura a NOSSA exceção de validação e joga para cima (para o Controller enviar o erro 400 ao front)
+                throw e;
             } catch (Exception e) {
+                // Captura erros genéricos (ex: HD cheio, banco fora do ar)
                 throw new RuntimeException("Falha ao salvar o arquivo: " + arquivo.getOriginalFilename(), e);
             }
-
         }
-        logger.info("Arquivos cadastrados com sucesso");
+
+        // Aqui vale usar o logger do Slf4j ou similar
+        // logger.info("Arquivos cadastrados com sucesso");
     }
 
     private String calcularHash(byte[] bytesArquivo) throws NoSuchAlgorithmException {
@@ -197,32 +209,39 @@ public class DocumentoService {
             try {
                 logger.info("Iniciando extração do documento ID: {}", documento.getId());
 
-                // 1. Extração e Processamento (Pipeline NLP que criamos)
+                // 1. Extração e Processamento
                 String textoCru = extratorService.extrairTextoDoPdf(documento.getCaminhoArquivo());
                 String textoProcessado = processadorTextoService.processar(textoCru);
 
-                // 2. Quebrar a string processada em tokens únicos (Set para evitar duplicatas no mesmo doc)
-                Set<String> tokens = Arrays.stream(textoProcessado.split(" "))
-                        .filter(token -> !token.trim().isEmpty()) // Ignora espaços em branco acidentais
-                        .collect(Collectors.toSet()); // O toSet() padrão ignora duplicatas sem dar erro!
+                // 2. A MÁGICA DA FREQUÊNCIA: Transforma o texto em um Mapa (Ex: "capacitaca" -> 5)
+                Map<String, Long> mapaFrequencia = Arrays.stream(textoProcessado.split(" "))
+                        .filter(token -> !token.trim().isEmpty())
+                        .collect(Collectors.groupingBy(
+                                Function.identity(), // A própria palavra é a chave
+                                Collectors.counting() // Conta as repetições
+                        ));
 
-                // 3. Vincular Termos ao Documento
-                Set<Termo> termosDoDocumento = new HashSet<>();
-                for (String valorToken : tokens) {
-                    if (valorToken.isEmpty()) continue;
+                // 3. Limpa índices antigos (caso o documento esteja sendo reindexado)
+                documento.getIndices().clear();
 
-                    // Busca o termo no vocabulário global ou cria se não existir
+                // 4. Salva os Termos e cria os Índices Invertidos com a Frequência
+                for (Map.Entry<String, Long> entrada : mapaFrequencia.entrySet()) {
+                    String valorToken = entrada.getKey();
+                    Integer frequencia = entrada.getValue().intValue();
+
+                    // Busca o termo ou cria um novo
                     Termo termo = termoRepository.findByTermoNormalizado(valorToken)
                             .orElseGet(() -> termoRepository.save(new Termo(valorToken)));
 
-                    termosDoDocumento.add(termo);
+                    // Adiciona a relação já com a frequência matemática salva!
+                    documento.adicionarIndice(termo, frequencia);
                 }
 
-                // 4. Salvar as relações e atualizar o documento
+                // 5. Salva no banco
                 documento.setTextoCru(textoCru);
-                documento.setTermos(termosDoDocumento); // O JPA cuidará do INSERT na INDICE_INVERTIDO
                 documento.setStatusDoc(statusAtivo);
 
+                // Graças ao CascadeType.ALL, ao salvar o documento, o Spring salva os itens na INDICE_INVERTIDO
                 repository.save(documento);
                 indexadosComSucesso++;
                 logger.info("Documento ID: {} indexado com sucesso!", documento.getId());

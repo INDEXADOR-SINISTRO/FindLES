@@ -22,12 +22,18 @@ const Documentos = () => {
     const [paginaAtual, setPaginaAtual] = useState(1);
     const [size, setSize] = useState<number>(5); // Quantos itens mostrar por vez
     const [isOpenDelete, setIsOpenDelete] = useState<boolean>(false)
+    const [isOpenIndexar, setIsOpenIndexar] = useState<boolean>(false)
+
+    const [isLoadingIndexar,setIsLoadingIndexar] = useState<boolean>(false)
+    const [isOpenCalcular, setIsOpenCalcular] = useState<boolean>(false)
     const [titulo, setTitulo] = useState<string>("")
 
     const [totalPaginas, setTotalPaginas] = useState(0)
     const [totalArquivos, setTotalArquivos] = useState(0)
     const { showMessage } = useSnackbar();
     const [nadaEncontrado, setNadaEncontrado] = useState<boolean>(false)
+
+
 
     const [expandido, setExpandido] = useState(false);
 
@@ -92,8 +98,14 @@ const Documentos = () => {
 
     const handleIndexar = async( )=>{
         try{
-            await documentoService.indexarDocumentos();
+            setIsLoadingIndexar(true);
+            const response = await documentoService.indexarDocumentos();
+            showMessage({ message: response , type: "success" });
+            setIsLoadingIndexar(false);
+            handleAplicar();
+            setIsOpenIndexar(false);
         }catch(error){
+            setIsLoadingIndexar(false)
             showMessage({ message: "Não foi possível indexar documentos.", type: "error" });
         }
     }
@@ -143,15 +155,15 @@ const Documentos = () => {
             </a>
             <div className='flex gap-2'>
             <Button
-            onClick={handleIndexar}
+            onClick={()=>{setIsOpenIndexar(true)}}
             className='text-white text-sm '
             text='Indexar'
             />
 
             <Button
-            onClick={()=>{}}
+            onClick={()=>{setIsOpenCalcular(true)}}
             className='bg-neutral-100  hover:bg-neutral-200 text-[#404040] border border-[#3F3E3E] text-sm '
-            text='Reindexar'
+            text='Cálcular TF-IDF'
             />
             </div>
         </div>
@@ -446,6 +458,31 @@ const Documentos = () => {
         >
             <div className='text-[#898989] text-lg'>
                 Deseja mesmo remover esse arquivo do sistema?
+            </div>
+
+        </Dialog>
+        <Dialog
+            isOpen={isOpenIndexar}
+            onClose={() => { setIsOpenIndexar(false) }}
+            title='Indexar documentos'
+            onConfirm={handleIndexar}
+            isLoading={isLoadingIndexar}
+
+        >
+            <div className='text-[#898989] text-lg'>
+                Ao confirmar todos os documentos com status "Pendente" serão indexados
+             </div>
+
+        </Dialog>
+        <Dialog
+            isOpen={isOpenCalcular}
+            onClose={() => { setIsOpenCalcular(false) }}
+            title='Calcular TF-IDF'
+            onConfirm={() => showMessage({ message: "Não implementado", type: "warning" })}
+
+        >
+            <div className='text-[#898989] text-lg'>
+                Ao confirmar o calculo de TF-IDF será processado com base em todos os documentos com status "ativo"
             </div>
 
         </Dialog>

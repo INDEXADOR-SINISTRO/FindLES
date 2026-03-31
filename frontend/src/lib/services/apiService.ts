@@ -43,9 +43,10 @@ class ApiService {
     config?: AxiosRequestConfig
   ): Promise<T> {
     try {
-      const response = await apiClient.post<ApiResponse<T>>(url, data, config)
-      return response.data.content
+      const response = await apiClient.post<T>(url, data, config)
+      return response.data
     } catch (error) {
+      console.log(error)
       throw this.handleError(error)
     }
   }
@@ -166,7 +167,7 @@ class ApiService {
       throw this.handleError(error)
     }
   }
-  
+
   async openFile(url: string): Promise<void> {
     try {
       // Faz a requisição enviando o seu Token JWT (o apiClient já faz isso)
@@ -177,7 +178,7 @@ class ApiService {
       // Cria um link temporário na memória do navegador com o arquivo
       const file = new Blob([response.data], { type: response.headers['content-type'] })
       const fileURL = window.URL.createObjectURL(file)
-      
+
       // Abre esse link temporário em uma nova aba!
       window.open(fileURL, '_blank')
 
@@ -194,16 +195,33 @@ class ApiService {
    */
   private handleError(error: unknown): Error {
     if (error instanceof AxiosError) {
-      const message =
-        error.response?.data?.message ||
-        error.message ||
-        'Ocorreu um erro na requisição'
 
+    
 
-      return new Error(message)
+      let mensagemPersonalizada = '';
+      const dadosErro = error.response?.data;
+
+      // 2. Verifica se o backend mandou apenas uma String limpa
+      if (typeof dadosErro === 'string') {
+        mensagemPersonalizada = dadosErro;
+      }
+      // 3. Verifica se é um objeto JSON e tenta pegar as chaves mais comuns
+      else if (dadosErro && typeof dadosErro === 'object') {
+        mensagemPersonalizada =
+          dadosErro.message || // O que você já tentava
+          dadosErro.error ||   // Padrão do Spring Boot
+          dadosErro.detail ||  // Padrão RFC 7807 (Problem Details)
+          '';
+      }
+
+      // 4. Monta a mensagem final: 
+      // Pega a personalizada. Se não achar, cai pro padrão do Axios.
+      const message = mensagemPersonalizada || error.message || 'Ocorreu um erro na requisição';
+
+      return new Error(message);
     }
 
-    return new Error('Erro desconhecido')
+    return new Error('Erro desconhecido');
   }
 }
 

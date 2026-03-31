@@ -65,8 +65,8 @@ class DocumentoService {
 
 
 
-  async indexarDocumentos(): Promise<void> {
-      return apiService.post(this.baseUrl + "/indexar-pendentes")
+  async indexarDocumentos(): Promise<string> {
+      return apiService.post<string,any>(this.baseUrl + "/indexar-pendentes")
     }
 }
 

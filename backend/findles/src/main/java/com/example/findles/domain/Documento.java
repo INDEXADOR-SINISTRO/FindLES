@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Table(name = "DOCUMENTO")
@@ -62,11 +64,12 @@ public class Documento {
     @Column(name = "TEXTO_CRU", nullable = true, columnDefinition = "TEXT")
     private String textoCru;
 
-    @ManyToMany
-    @JoinTable(
-            name = "INDICE_INVERTIDO",
-            joinColumns = @JoinColumn(name = "ID_DOCUMENTO"),
-            inverseJoinColumns = @JoinColumn(name = "ID_TERMO")
-    )
-    private Set<Termo> termos = new HashSet<>();
+    @OneToMany(mappedBy = "documento", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<IndiceInvertido> indices = new ArrayList<>();
+
+
+    public void adicionarIndice(Termo termo, Integer frequencia) {
+        IndiceInvertido indice = new IndiceInvertido(this, termo, frequencia);
+        this.indices.add(indice);
+    }
 }

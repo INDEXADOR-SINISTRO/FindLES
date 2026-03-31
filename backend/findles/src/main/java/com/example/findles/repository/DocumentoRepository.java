@@ -25,4 +25,6 @@ public interface DocumentoRepository extends JpaRepository<Documento, Integer> {
             Pageable pageable);
 
     List<Documento> findByStatusDocId(Integer idStatus);
+
+    boolean existsByHashConteudo(String hashConteudo);
 }
