@@ -1,6 +1,6 @@
 package com.example.findles.repository;
 
-import com.example.findles.domain.Documento;
+import com.example.findles.domain.entity.Documento;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

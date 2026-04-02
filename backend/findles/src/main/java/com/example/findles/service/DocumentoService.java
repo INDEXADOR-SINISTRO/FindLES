@@ -1,10 +1,7 @@
 package com.example.findles.service;
 
-import com.example.findles.domain.*;
-import com.example.findles.repository.CategoriaRepository;
-import com.example.findles.repository.DocumentoRepository;
-import com.example.findles.repository.StatusDocumentoRepository;
-import com.example.findles.repository.TermoRepository;
+import com.example.findles.domain.entity.*;
+import com.example.findles.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +27,7 @@ import java.net.MalformedURLException;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import com.example.findles.dto.DadosListagemDocumentoDTO;
+import com.example.findles.domain.dto.response.DadosListagemDocumentoDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -59,10 +56,12 @@ public class DocumentoService {
     @Autowired
     private ProcessadorTextoService processadorTextoService;
 
+
     private final String DIRETORIO_UPLOADS = "uploads/documentos/";
 
     @Transactional
     public void salvarDocumentos(List<MultipartFile> arquivos, Integer idCategoria, Usuario usuarioLogado) {
+
 
         try {
             Files.createDirectories(Paths.get(DIRETORIO_UPLOADS));

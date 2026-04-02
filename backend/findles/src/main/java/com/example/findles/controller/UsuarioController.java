@@ -1,6 +1,6 @@
 package com.example.findles.controller;
 
-import com.example.findles.dto.DadosCadastroUsuarioDTO;
+import com.example.findles.domain.dto.request.DadosCadastroUsuarioDTO;
 import com.example.findles.service.UsuarioService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;

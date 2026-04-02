@@ -1,8 +1,8 @@
 package com.example.findles.controller;
 
-import com.example.findles.domain.Usuario;
-import com.example.findles.dto.DadosAutenticacaoDTO;
-import com.example.findles.dto.DadosTokenJWTDTO;
+import com.example.findles.domain.entity.Usuario;
+import com.example.findles.domain.dto.request.DadosAutenticacaoDTO;
+import com.example.findles.domain.dto.response.DadosTokenJWTDTO;
 import com.example.findles.service.TokenService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;

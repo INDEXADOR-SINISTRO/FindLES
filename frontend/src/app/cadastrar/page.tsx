@@ -17,6 +17,7 @@ const Cadastro = () => {
   const [password, setPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
   const [nome, setNome] = useState<string>("");
+  const [isLoading,setIsLoading] = useState<boolean>(false)
 
   
   const [submitWasClicked,setSubmitWasClicked] = useState<boolean>(false)
@@ -47,7 +48,7 @@ const Cadastro = () => {
       if(invalidFields){
         return;
       }
-
+      setIsLoading(true)
       const payload :UserDto = {
         nome: nome,
         email: email,
@@ -63,6 +64,8 @@ const Cadastro = () => {
         const error = e as Error;
         showMessage({ message: error.message || "Erro ao cadastrar usuário", type: "error"})
         
+      }finally{
+        setIsLoading(false)
       }
       
    
@@ -159,6 +162,7 @@ const Cadastro = () => {
              onClick={()=>{}}
              text="Criar conta"
              className="text-white"
+             isLoading={isLoading}
             />
 
             

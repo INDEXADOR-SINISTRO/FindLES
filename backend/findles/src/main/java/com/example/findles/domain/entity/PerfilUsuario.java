@@ -1,4 +1,4 @@
-package com.example.findles.domain;
+package com.example.findles.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.*;

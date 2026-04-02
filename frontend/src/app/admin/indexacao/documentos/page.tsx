@@ -12,40 +12,7 @@ import { DocumentDuplicateIcon, EyeIcon, PencilIcon, PencilSquareIcon, TrashIcon
 import { ArrowLeftIcon, ArrowLongLeftIcon, ChevronLeftIcon, ChevronRightIcon, FunnelIcon, HandThumbDownIcon } from '@heroicons/react/24/solid';
 import React, { useEffect, useState } from 'react';
 
-
-
-
-
-const Documentos = () => {
-
-    // Estados da Paginação
-    const [paginaAtual, setPaginaAtual] = useState(1);
-    const [size, setSize] = useState<number>(5); // Quantos itens mostrar por vez
-    const [isOpenDelete, setIsOpenDelete] = useState<boolean>(false)
-    const [isOpenIndexar, setIsOpenIndexar] = useState<boolean>(false)
-
-    const [isLoadingIndexar,setIsLoadingIndexar] = useState<boolean>(false)
-    const [isOpenCalcular, setIsOpenCalcular] = useState<boolean>(false)
-    const [titulo, setTitulo] = useState<string>("")
-
-    const [totalPaginas, setTotalPaginas] = useState(0)
-    const [totalArquivos, setTotalArquivos] = useState(0)
-    const { showMessage } = useSnackbar();
-    const [nadaEncontrado, setNadaEncontrado] = useState<boolean>(false)
-
-
-
-    const [expandido, setExpandido] = useState(false);
-
-    // Estados dos formulários (para você ligar com sua requisição depois)
-    const [categoria, setCategoria] = useState<string>("");
-    const optionsCategoria: OptionType[] = CategoriaList.map(
-        (item) => ({
-            value: String(item.value),
-            optionLabel: item.descricao
-        })
-    );
-    const optionsMaxResultados: OptionType[] = [
+const optionsMaxResultados: OptionType[] = [
         {
             value: "5",
             optionLabel: "5"
@@ -68,6 +35,41 @@ const Documentos = () => {
         },
 
     ]
+
+
+
+const Documentos = () => {
+
+    // Estados da Paginação
+    const [paginaAtual, setPaginaAtual] = useState(1);
+    const [size, setSize] = useState<number>(5); // Quantos itens mostrar por vez
+    const [isOpenDelete, setIsOpenDelete] = useState<boolean>(false)
+    const [isOpenIndexar, setIsOpenIndexar] = useState<boolean>(false)
+
+    const [isLoadingIndexar,setIsLoadingIndexar] = useState<boolean>(false)
+    const [isOpenCalcular, setIsOpenCalcular] = useState<boolean>(false)
+    const [titulo, setTitulo] = useState<string>("")
+
+    const [maxResultados,setMaxResultados] = useState<number>(5)
+
+    const [totalPaginas, setTotalPaginas] = useState(0)
+    const [totalArquivos, setTotalArquivos] = useState(0)
+    const { showMessage } = useSnackbar();
+    const [nadaEncontrado, setNadaEncontrado] = useState<boolean>(false)
+
+
+
+    const [expandido, setExpandido] = useState(false);
+
+    // Estados dos formulários (para você ligar com sua requisição depois)
+    const [categoria, setCategoria] = useState<string>("");
+    const optionsCategoria: OptionType[] = CategoriaList.map(
+        (item) => ({
+            value: String(item.value),
+            optionLabel: item.descricao
+        })
+    );
+    
     
     const [dataDe, setDataDe] = useState("");
     const [dataAte, setDataAte] = useState("");
@@ -102,12 +104,12 @@ const Documentos = () => {
             const response = await documentoService.indexarDocumentos();
             showMessage({ message: response , type: "success" });
             setIsLoadingIndexar(false);
-            handleAplicar();
             setIsOpenIndexar(false);
         }catch(error){
             setIsLoadingIndexar(false)
             showMessage({ message: "Não foi possível indexar documentos.", type: "error" });
         }
+        handleAplicar();
     }
 
 
@@ -121,6 +123,7 @@ const Documentos = () => {
         try {
             setNadaEncontrado(false)
             setPaginaAtual(1)
+            setMaxResultados(size)
             const response = await documentoService.getAll(
                 paginaAtual - 1,
                 {
@@ -300,6 +303,9 @@ const Documentos = () => {
                 {/* CABEÇALHO DA TABELA (Bege) */}
                 <thead className="bg-[#E6E5DC] border-b border-[#c5c3b9]">
                     <tr>
+                        <th className="p-4 border-r border-[#c5c3b9] text-[#4a4a4a] font-semibold w-auto">
+                            #
+                        </th>
                         <th className="p-4 border-r border-[#c5c3b9] text-[#4a4a4a] font-semibold w-2/5">
                             Título
                         </th>
@@ -326,6 +332,9 @@ const Documentos = () => {
                             // A mágica das cores alternadas: pares ficam brancos, ímpares ficam bege clarinho
                             className={`${index % 2 === 0 ? 'bg-white' : 'bg-[#F2F1EC]'} border-b border-[#c5c3b9] hover:bg-[#e4e2d8] transition-colors`}
                         >
+                            <td className="p-4 border-r border-[#c5c3b9] text-[#555555] font-medium text-left">
+                                {(maxResultados*(paginaAtual -1)) + 1 + index }
+                            </td>
                             <td className="p-4 border-r border-[#c5c3b9] text-[#555555] font-medium text-left">
                                 {doc.titulo}
                             </td>

@@ -1,8 +1,8 @@
 package com.example.findles.service;
 
-import com.example.findles.domain.Usuario;
-import com.example.findles.dto.DadosCadastroUsuarioDTO;
-import com.example.findles.mapper.UsuarioMapper;
+import com.example.findles.domain.entity.Usuario;
+import com.example.findles.domain.dto.request.DadosCadastroUsuarioDTO;
+import com.example.findles.domain.mapper.UsuarioMapper;
 import com.example.findles.repository.PerfilUsuarioRepository;
 import com.example.findles.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,6 +1,6 @@
 package com.example.findles.repository;
 
-import com.example.findles.domain.PerfilUsuario;
+import com.example.findles.domain.entity.PerfilUsuario;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

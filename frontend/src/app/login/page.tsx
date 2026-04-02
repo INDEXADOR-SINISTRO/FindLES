@@ -40,7 +40,7 @@ const Login = () => {
         return;
       }
       
-      
+      setIsLoading(true)
       const payload :authDto = {
         email: email,
         senha: password
@@ -51,7 +51,7 @@ const Login = () => {
         const error = e as Error;
         showMessage({message:"E-mail ou senha incorretos.", type:"error"});
       }finally{
-        
+        setIsLoading(false)
       }
     }
 
@@ -112,9 +112,10 @@ const Login = () => {
           <div className="flex justify-center mb-4">    
             <a href="/admin">
                 <Button
-                onClick={onSubmit}
+                onClick={()=>{}}
                 text="Entrar"
                 className="text-white"
+                isLoading={isLoading}
                 />
             </a>
           </div>

@@ -41,7 +41,6 @@ export const Header = ({ titulo }: { titulo: string }) => {
   console.log(userData)
 
 
-  const usuario = true;
 
   /*const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const novoValor = e.target.value;
@@ -87,7 +86,7 @@ export const Header = ({ titulo }: { titulo: string }) => {
               </p>*/}
             </>
           )}
-        <div className="w-full lg:w-auto mr-auto ml-auto flex text-[#898989] text-xl ">
+        <div className={userData?.role === "ROLE_USER" ? "hidden" :"w-full lg:w-auto mr-auto ml-auto flex text-[#898989] text-xl "}>
           <div className={ pathname.includes("busca") ? "w-1/2 lg:w-auto text-white font-bold border-t-4  border-[#cecccc] hover:cursor-pointer bg-taupe-500" : "  w-1/2 lg:w-auto transition-all duration-300 ease-in-out border-t-4  hover:border-taupe-500 border-[#3f3f3f]  hover:cursor-pointer hover:bg-taupe-500 hover:text-white"}>
             <Link className="block w-full h-full py-2 px-4"
               href="/busca"
@@ -105,7 +104,7 @@ export const Header = ({ titulo }: { titulo: string }) => {
 
           </div>
         </div>
-        {usuario && (
+        {userData && (
           <div className="flex gap-3 items-center md:justify-center lg:absolute right-28 mt-2 mb-2">
             <div className="flex items-center gap-2">
               <UserIcon className="w-5 h-5 text-white"></UserIcon>

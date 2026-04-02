@@ -1,7 +1,7 @@
-package com.example.findles.mapper;
+package com.example.findles.domain.mapper;
 
-import com.example.findles.domain.Usuario;
-import com.example.findles.dto.DadosCadastroUsuarioDTO;
+import com.example.findles.domain.entity.Usuario;
+import com.example.findles.domain.dto.request.DadosCadastroUsuarioDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

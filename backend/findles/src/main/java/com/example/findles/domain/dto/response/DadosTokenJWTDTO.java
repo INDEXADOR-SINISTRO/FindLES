@@ -1,4 +1,4 @@
-package com.example.findles.dto;
+package com.example.findles.domain.dto.response;
 
 public record DadosTokenJWTDTO(String token) {
 }

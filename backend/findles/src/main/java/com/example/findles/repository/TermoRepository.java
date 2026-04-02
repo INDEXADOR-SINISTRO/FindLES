@@ -1,6 +1,6 @@
 package com.example.findles.repository;
 
-import com.example.findles.domain.Termo;
+import com.example.findles.domain.entity.Termo;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

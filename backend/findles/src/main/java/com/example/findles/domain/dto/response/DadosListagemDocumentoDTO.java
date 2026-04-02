@@ -1,6 +1,6 @@
-package com.example.findles.dto;
+package com.example.findles.domain.dto.response;
 
-import com.example.findles.domain.Documento;
+import com.example.findles.domain.entity.Documento;
 
 import java.time.LocalDateTime;
 

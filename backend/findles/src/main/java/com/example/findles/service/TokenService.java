@@ -1,6 +1,6 @@
 package com.example.findles.service;
 
-import com.example.findles.domain.Usuario;
+import com.example.findles.domain.entity.Usuario;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;

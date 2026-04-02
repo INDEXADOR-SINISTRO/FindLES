@@ -1,7 +1,8 @@
 package com.example.findles.controller;
 
+import com.example.findles.service.AuditoriaService;
 import com.example.findles.service.DocumentoService;
-import com.example.findles.domain.Usuario;
+import com.example.findles.domain.entity.Usuario;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +13,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.example.findles.dto.DadosListagemDocumentoDTO;
+import com.example.findles.domain.dto.response.DadosListagemDocumentoDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -33,6 +34,9 @@ public class DocumentoController {
     @Autowired
     private DocumentoService documentoService;
 
+    @Autowired
+    private AuditoriaService auditoriaService;
+
     private static final Logger logger = LoggerFactory.getLogger(DocumentoController.class);
 
 
@@ -46,9 +50,11 @@ public class DocumentoController {
         try {
             logger.info("Anexando documentos: {} documentos", arquivos.size());
             documentoService.salvarDocumentos(arquivos, idCategoria, usuarioLogado);
+            auditoriaService.criarHistorico(usuarioLogado,"Fazer Upload de arquivos no sistema","");
             return ResponseEntity.status(201).body("Documentos salvos com sucesso!");
         } catch (Exception e) {
             logger.error("Erro ao indexar arquivos: {}", e.getMessage());
+            auditoriaService.criarHistorico(usuarioLogado,"Fazer Upload de arquivos no sistema",e.getMessage());
             return ResponseEntity.badRequest().body(e.getMessage());
         }
 
@@ -82,7 +88,8 @@ public class DocumentoController {
     }
 
     @PostMapping("/indexar-pendentes")
-    public ResponseEntity<String> iniciarIndexacaoEmLote() {
+    public ResponseEntity<String> iniciarIndexacaoEmLote(
+            @AuthenticationPrincipal Usuario usuarioLogado) {
         try {
             // O Service faz todo o trabalho pesado (Tika + Update no Postgres) e devolve o total de sucessos
             int quantidadeIndexada = documentoService.indexarDocumentosPendentes();
@@ -93,10 +100,12 @@ public class DocumentoController {
             }
 
             // Se processou 1 ou mais, devolve a mensagem de sucesso com a quantidade
+            auditoriaService.criarHistorico(usuarioLogado,"Indexar arquivos pendentes: " +  quantidadeIndexada + " documento(s)","");
             return ResponseEntity.ok(quantidadeIndexada + " documento(s) indexado(s) com sucesso e atualizado(s) para ATIVO!");
 
         } catch (Exception e) {
             // Para capturar qualquer erro fatal que escape do loop de processamento
+            auditoriaService.criarHistorico(usuarioLogado,"Indexar arquivos pendentes",e.getMessage());
             return ResponseEntity.internalServerError().body("Erro interno na rotina de indexação: " + e.getMessage());
         }
     }

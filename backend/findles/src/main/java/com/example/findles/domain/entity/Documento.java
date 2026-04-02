@@ -1,13 +1,11 @@
-package com.example.findles.domain;
+package com.example.findles.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Table(name = "DOCUMENTO")
 @Entity(name = "Documento")

@@ -3,7 +3,6 @@ import Cookies from 'js-cookie'
 
 const apiClient = axios.create({
   baseURL: 'http://localhost:8080/api',
-  timeout: 10000,
 })
 
 // Interceptor para adicionar token automaticamente

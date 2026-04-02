@@ -1,4 +1,4 @@
-package com.example.findles.dto;
+package com.example.findles.domain.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

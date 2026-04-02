@@ -9,5 +9,5 @@ export const formatarDataHora = (dataIso: string): string => {
     year: 'numeric',
     hour: '2-digit',
     minute: '2-digit'
-  }).replace(',', ' '); 
+  }).replace(',', ' às'); 
 };
