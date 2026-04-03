@@ -15,6 +15,8 @@ export default function AreaDeUpload({idCategoria}: AreaUploadProps) {
   const [arquivos, setArquivos] = useState<File[]>([]);
   // NOVO: Estado para controlar a cor da caixa quando o arquivo estiver "sobreando" ela
   const [arrastando, setArrastando] = useState(false); 
+
+  const [isLoading,setIsLoading] =useState<boolean>(false);
   
   const inputArquivoRef = useRef<HTMLInputElement>(null);
 
@@ -40,7 +42,7 @@ export default function AreaDeUpload({idCategoria}: AreaUploadProps) {
 
 
   try {
-
+    setIsLoading(true);
     // 4. Faz o POST para o seu backend
     // O Axios é inteligente: ao ver um FormData, ele já muda o Content-Type para 'multipart/form-data'
     await documentoService.upload(arquivos, idCategoria);
@@ -53,7 +55,9 @@ export default function AreaDeUpload({idCategoria}: AreaUploadProps) {
   } catch (error) {
     const erro = error as Error
     showMessage({ message: erro.message, type: "error" });
-  } 
+  } finally{
+    setIsLoading(false);
+  }
 }
 
   // Função do input invisível (Mantida)
@@ -178,6 +182,7 @@ export default function AreaDeUpload({idCategoria}: AreaUploadProps) {
             text='Salvar'
             onClick={onSubmit}
             className="text-white"
+            isLoading={isLoading}
             />
             </div>
           </div>

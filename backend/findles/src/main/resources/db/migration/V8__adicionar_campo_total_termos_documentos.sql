@@ -1,0 +1,1 @@
+ALTER TABLE documento ADD total_termos INT;

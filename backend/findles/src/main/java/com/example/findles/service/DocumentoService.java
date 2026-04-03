@@ -56,6 +56,9 @@ public class DocumentoService {
     @Autowired
     private ProcessadorTextoService processadorTextoService;
 
+    @Autowired
+    private IndiceInvertidoRepository indiceInvertidoRepository;
+
 
     private final String DIRETORIO_UPLOADS = "uploads/documentos/";
 
@@ -220,6 +223,15 @@ public class DocumentoService {
                                 Collectors.counting() // Conta as repetições
                         ));
 
+                // NOVIDADE AQUI: 2.5 Calcula o total geral de termos do documento
+                // Soma todas as frequências para obter o tamanho real do documento processado
+                int totalDeTermos = mapaFrequencia.values().stream()
+                        .mapToInt(Long::intValue)
+                        .sum();
+
+                // Atribui o total ao documento
+                documento.setTotalTermos(totalDeTermos);
+
                 // 3. Limpa índices antigos (caso o documento esteja sendo reindexado)
                 documento.getIndices().clear();
 
@@ -243,7 +255,7 @@ public class DocumentoService {
                 // Graças ao CascadeType.ALL, ao salvar o documento, o Spring salva os itens na INDICE_INVERTIDO
                 repository.save(documento);
                 indexadosComSucesso++;
-                logger.info("Documento ID: {} indexado com sucesso!", documento.getId());
+                logger.info("Documento ID: {} indexado com sucesso! Total de termos: {}", documento.getId(), totalDeTermos);
 
             } catch (Exception e) {
                 // Se der erro em UM arquivo, logamos o erro, mas o laço FOR continua para o próximo!
@@ -252,5 +264,64 @@ public class DocumentoService {
         }
 
         return indexadosComSucesso;
+    }
+
+    @Transactional
+    public void calcularTfIdfDeTodaABase() {
+        try {
+
+
+            logger.info("Iniciando cálculo de TF-IDF para toda a base...");
+
+            // 1. Total de documentos ativos (N)
+            long totalDocumentosAtivos = repository.countByStatusDocId(1);
+
+            if (totalDocumentosAtivos == 0) {
+                logger.warn("Nenhum documento ativo encontrado para calcular TF-IDF.");
+                throw new IllegalArgumentException("Nenhum documento ativo encontrado para calcular TF-IDF.");
+            }
+
+            // 2. Busca todos os termos existentes no banco
+            // Nota: Em uma base com milhões de termos, isso precisaria ser paginado (Pageable).
+            List<Termo> todosTermos = termoRepository.findAll();
+
+            for (Termo termo : todosTermos) {
+                // 3. Document Frequency (DF): Em quantos documentos este termo aparece?
+                List<IndiceInvertido> indicesDoTermo = indiceInvertidoRepository.findByTermo(termo);
+                int df = indicesDoTermo.size();
+
+                // Se o termo não está em nenhum documento (talvez um doc tenha sido deletado), pula
+                if (df == 0) continue;
+
+                // 4. Calcula o IDF do termo usando Logaritmo na base 10
+                double idf = Math.log10((double) totalDocumentosAtivos / df );
+
+                // 5. Calcula o TF e o TF-IDF para cada documento que possui o termo
+                for (IndiceInvertido indice : indicesDoTermo) {
+                    Documento documento = indice.getDocumento();
+
+                    int tfBruto = indice.getFrequencia();
+                    int totalTermosNoDoc = documento.getTotalTermos();
+
+                    // Evita divisão por zero caso haja alguma inconsistência no banco
+                    if (totalTermosNoDoc == 0) continue;
+
+                    // Calcula o TF (Proporção da palavra dentro do texto)
+                    double tf = (double) tfBruto / totalTermosNoDoc;
+
+                    // Calcula o Peso Final e salva na entidade
+                    double pesoTfIdf = tf * idf;
+                    indice.setTfIdf(pesoTfIdf);
+                }
+
+                // 6. Salva as atualizações no banco em lote para este termo
+                indiceInvertidoRepository.saveAll(indicesDoTermo);
+            }
+
+            logger.info("Cálculo de TF-IDF concluído com sucesso!");
+        }catch(Exception e){
+            logger.error("Falha ao calcular peso TF-IDF: {}", e.getMessage());
+            throw e;
+        }
     }
 }

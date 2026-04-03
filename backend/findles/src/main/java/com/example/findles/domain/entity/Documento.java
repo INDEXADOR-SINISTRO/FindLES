@@ -65,6 +65,9 @@ public class Documento {
     @OneToMany(mappedBy = "documento", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<IndiceInvertido> indices = new ArrayList<>();
 
+    @Column(name = "TOTAL_TERMOS")
+    private Integer totalTermos;
+
 
     public void adicionarIndice(Termo termo, Integer frequencia) {
         IndiceInvertido indice = new IndiceInvertido(this, termo, frequencia);

@@ -76,6 +76,10 @@ import { useState } from "react"
   
   return (
     <>
+
+        <h1 className="text-3xl mb-2 text-center">Buscar documentos</h1>
+        <hr className="text-[#685A22] mb-2" />
+        <p className="text-[#898989] text-l mb-4 text-center">Digite um ou mais termos para pesquisar</p>
       <div className='mb-10 flex items-end w-full'>
             <Input
                 id='titulo'

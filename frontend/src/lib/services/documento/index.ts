@@ -68,6 +68,10 @@ class DocumentoService {
   async indexarDocumentos(): Promise<string> {
       return apiService.post<string,any>(this.baseUrl + "/indexar-pendentes")
     }
+
+    async calcularTfIdf(): Promise<string> {
+      return apiService.post<string,any>(this.baseUrl + "/calcular-tfidf")
+    }
 }
 
 export const documentoService = new DocumentoService()

@@ -45,7 +45,7 @@ const Documentos = () => {
     const [size, setSize] = useState<number>(5); // Quantos itens mostrar por vez
     const [isOpenDelete, setIsOpenDelete] = useState<boolean>(false)
     const [isOpenIndexar, setIsOpenIndexar] = useState<boolean>(false)
-
+    const [isLoadingTfIdf,setIsLoadingTfIdf] = useState<boolean>(false)
     const [isLoadingIndexar,setIsLoadingIndexar] = useState<boolean>(false)
     const [isOpenCalcular, setIsOpenCalcular] = useState<boolean>(false)
     const [titulo, setTitulo] = useState<string>("")
@@ -107,9 +107,21 @@ const Documentos = () => {
             setIsOpenIndexar(false);
         }catch(error){
             setIsLoadingIndexar(false)
-            showMessage({ message: "Não foi possível indexar documentos.", type: "error" });
+            showMessage({ message: "Não foi possível indexar documentos", type: "error" });
         }
         handleAplicar();
+    }
+    const handleCalcularTfIdf = async( )=>{
+        try{
+            setIsLoadingTfIdf(true);
+            const response = await documentoService.calcularTfIdf();
+            showMessage({ message: response , type: "success" });
+            setIsLoadingTfIdf(false);
+            setIsOpenCalcular(false);
+        }catch(error){
+            setIsLoadingTfIdf(false)
+            showMessage({ message: "Não foi possível calcular tf-idf", type: "error" });
+        }
     }
 
 
@@ -487,7 +499,8 @@ const Documentos = () => {
             isOpen={isOpenCalcular}
             onClose={() => { setIsOpenCalcular(false) }}
             title='Calcular TF-IDF'
-            onConfirm={() => showMessage({ message: "Não implementado", type: "warning" })}
+            onConfirm={handleCalcularTfIdf}
+            isLoading={isLoadingTfIdf}
 
         >
             <div className='text-[#898989] text-lg'>

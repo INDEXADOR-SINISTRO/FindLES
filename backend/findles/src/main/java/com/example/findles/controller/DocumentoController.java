@@ -109,4 +109,20 @@ public class DocumentoController {
             return ResponseEntity.internalServerError().body("Erro interno na rotina de indexação: " + e.getMessage());
         }
     }
+
+    @PostMapping("/calcular-tfidf")
+    public ResponseEntity<String> calcularTfIdf(
+            @AuthenticationPrincipal Usuario usuarioLogado
+    ) {
+        try {
+            // É recomendado rodar isso de forma assíncrona (@Async) em produção,
+            // pois pode demorar vários minutos dependendo do tamanho da base.
+            documentoService.calcularTfIdfDeTodaABase();
+            auditoriaService.criarHistorico(usuarioLogado,"Calcular tf-idf de documentos ativos" ,"");
+            return ResponseEntity.ok("Processo de cálculo de TF-IDF finalizado com sucesso.");
+        } catch (Exception e) {
+            auditoriaService.criarHistorico(usuarioLogado,"Calcular tf-idf de documentos ativos",e.getMessage());
+            return ResponseEntity.internalServerError().body("Erro ao calcular TF-IDF: " + e.getMessage());
+        }
+    }
 }

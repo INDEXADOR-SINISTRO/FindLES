@@ -27,4 +27,6 @@ public interface DocumentoRepository extends JpaRepository<Documento, Integer> {
     List<Documento> findByStatusDocId(Integer idStatus);
 
     boolean existsByHashConteudo(String hashConteudo);
+
+    long countByStatusDocId(Integer statusId);
 }
