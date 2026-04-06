@@ -1,98 +1,86 @@
 import { ArrowUpIcon, DocumentIcon, DocumentTextIcon } from '@heroicons/react/24/solid';
-import React, { useState, useRef, MouseEventHandler } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Button from '../widgets/Button';
 import { useSnackbar } from '../widgets/snackbar';
 import apiClient from '@/lib/utils/axios';
 import { documentoService } from '@/lib/services/documento';
 import { TrashIcon } from '@heroicons/react/24/outline';
 
-
 type AreaUploadProps = {
   idCategoria?: number | null;
+  multiple?: boolean;
+  onFilesChange?: (arquivos: File[]) => void; 
 };
 
-export default function AreaDeUpload({idCategoria}: AreaUploadProps) {
+export default function AreaDeUpload({ idCategoria, multiple = true, onFilesChange }: AreaUploadProps) {
   const [arquivos, setArquivos] = useState<File[]>([]);
-  // NOVO: Estado para controlar a cor da caixa quando o arquivo estiver "sobreando" ela
-  const [arrastando, setArrastando] = useState(false); 
-
-  const [isLoading,setIsLoading] =useState<boolean>(false);
-  
+  const [arrastando, setArrastando] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const inputArquivoRef = useRef<HTMLInputElement>(null);
+  const { showMessage } = useSnackbar();
 
-  const {showMessage} = useSnackbar();
+  useEffect(() => {
+    if (onFilesChange) {
+      onFilesChange(arquivos);
+    }
+  }, [arquivos, onFilesChange]);
 
-
-  const onSubmit = async()=>{
-  
-  const idCategoriaSelecionada = idCategoria; 
-
-  // 1. Cria o pacote FormData
-  const formData = new FormData();
-
-  // 2. Coloca os arquivos dentro do pacote
-  // O nome 'arquivos' DEVE ser exatamente o mesmo nome do parâmetro no seu Controller Java
-  arquivos.forEach((arquivo) => {
-    formData.append('arquivos', arquivo);
-  });
-
-  // 3. Coloca os outros dados que o backend pede
-  // O FormData só aceita strings ou Blobs, então convertemos o número para string
-  formData.append('idCategoria', String(idCategoriaSelecionada));
-
-
-  try {
-    setIsLoading(true);
-    // 4. Faz o POST para o seu backend
-    // O Axios é inteligente: ao ver um FormData, ele já muda o Content-Type para 'multipart/form-data'
-    await documentoService.upload(arquivos, idCategoria);
-
-    showMessage({ message: "Arquivos enviados com sucesso!", type: "success" });
+  const onSubmit = async () => {
     
-    // Limpa a tela após o sucesso
-    setArquivos([]); 
 
-  } catch (error) {
-    const erro = error as Error
-    showMessage({ message: erro.message, type: "error" });
-  } finally{
-    setIsLoading(false);
+    try {
+      setIsLoading(true);
+      await documentoService.upload(arquivos, idCategoria);
+      showMessage({ message: "Arquivos enviados com sucesso!", type: "success" });
+      setArquivos([]);
+    } catch (error) {
+      const erro = error as Error;
+      showMessage({ message: erro.message, type: "error" });
+    } finally {
+      setIsLoading(false);
+    }
   }
-}
 
-  // Função do input invisível (Mantida)
   const lidarComSelecao = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files) {
+    if (event.target.files && event.target.files.length > 0) {
       const novosArquivos = Array.from(event.target.files);
-      setArquivos((prev) => [...prev, ...novosArquivos]);
+      
+      if (multiple) {
+        setArquivos((prev) => [...prev, ...novosArquivos]);
+      } else {
+        // Se for só 1, pega apenas o primeiro arquivo selecionado e substitui o array
+        setArquivos([novosArquivos[0]]);
+      }
     }
   };
 
-  // NOVAS FUNÇÕES DE DRAG AND DROP ====================
-
   const lidarComDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault(); // Impede o navegador de abrir o arquivo
-    setArrastando(true); // Muda a cor da borda
+    e.preventDefault(); 
+    setArrastando(true); 
   };
 
   const lidarComDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    setArrastando(false); // Volta a borda ao normal se o usuário tirar o mouse de cima
+    setArrastando(false); 
   };
 
   const lidarComDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault(); // Impede o navegador de abrir o arquivo
-    setArrastando(false); // Volta a cor ao normal
-    
-    // Pega os arquivos que foram soltos e coloca no nosso array
+    e.preventDefault(); 
+    setArrastando(false); 
+
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const arquivosSoltos = Array.from(e.dataTransfer.files);
-      setArquivos((prev) => [...prev, ...arquivosSoltos]);
-      e.dataTransfer.clearData(); // Limpa a memória do navegador
+      
+
+      if (multiple) {
+        setArquivos((prev) => [...prev, ...arquivosSoltos]);
+      } else {
+        setArquivos([arquivosSoltos[0]]);
+      }
+      
+      e.dataTransfer.clearData(); 
     }
   };
-
-  // ====================================================
 
   const removerArquivo = (indexParaRemover: number) => {
     setArquivos(arquivos.filter((_, index) => index !== indexParaRemover));
@@ -102,7 +90,7 @@ export default function AreaDeUpload({idCategoria}: AreaUploadProps) {
     <div className="w-full mx-auto">
       <input
         type="file"
-        multiple
+        multiple={multiple} 
         ref={inputArquivoRef}
         onChange={lidarComSelecao}
         className="hidden"
@@ -110,80 +98,73 @@ export default function AreaDeUpload({idCategoria}: AreaUploadProps) {
       />
 
       {arquivos.length === 0 ? (
-        /* ÁREA DE UPLOAD VAZIA */
-        <div 
-          onClick={() => inputArquivoRef.current?.click()} 
+        <div
+          onClick={() => inputArquivoRef.current?.click()}
           onDragOver={lidarComDragOver}
           onDragLeave={lidarComDragLeave}
           onDrop={lidarComDrop}
-          className={`border-2 border-dashed p-12 text-center bg-[#EBE9E1] cursor-pointer transition-colors duration-200 ${
-            arrastando ? 'border-blue-500 bg-blue-50' : 'border-gray-400 hover:bg-[#dfddd4]'
-          }`}
+          className={`border-2 border-dashed p-12 text-center bg-[#EBE9E1] cursor-pointer transition-colors duration-200 ${arrastando ? 'border-blue-500 bg-blue-50' : 'border-gray-400 hover:bg-[#dfddd4]'}`}
         >
-          {/* ... Icone e Textos ... */}
           <ArrowUpIcon className='w-12 h-12 mx-auto'></ArrowUpIcon>
           <p className="text-gray-600 font-medium">
-            Arraste arquivos aqui ou clique para selecionar
+            Arraste {multiple ? 'arquivos' : 'o arquivo'} aqui ou clique para selecionar
           </p>
-          <p className="text-sm text-gray-400 mt-1">PDF (multiplos arquivos permitidos)</p>
+
+          <p className="text-sm text-gray-400 mt-1">
+            PDF ({multiple ? 'múltiplos arquivos permitidos' : 'apenas 1 arquivo permitido'})
+          </p>
         </div>
 
       ) : (
-        /* LISTA DE ARQUIVOS - AGORA COM SUPORTE A DRAG & DROP E SCROLL */
-        <div 
+        <div
           onDragOver={lidarComDragOver}
           onDragLeave={lidarComDragLeave}
           onDrop={lidarComDrop}
-          
-          className={`border rounded-lg p-4 shadow-sm transition-colors duration-200 ${
-            arrastando ? 'bg-blue-50 border-blue-400 border-2 border-dashed' : 'bg-[#EBE9E1]'
-          }`}
+          className={`border  p-4 shadow-sm transition-colors duration-200 ${arrastando ? 'bg-blue-50 border-blue-400 border-2 border-dashed' : 'bg-[#EBE9E1]'}`}
         >
-          
           <h3 className="font-semibold text-gray-700 mb-4 border-b pb-2">
-            Arquivos Prontos para Envio ({arquivos.length})
-            {arrastando && <span className="ml-2 text-blue-500 text-sm font-normal">Solte para adicionar...</span>}
+            {multiple ? `Arquivos Prontos para Envio (${arquivos.length})` : 'Arquivo Pronto para Envio'}
+            {arrastando && <span className="ml-2 text-blue-500 text-sm font-normal">Solte para {multiple ? 'adicionar' : 'substituir'}...</span>}
           </h3>
-          
-          <ul className="space-y-3 max-h-60 overflow-y-auto pr-2">
-             {arquivos.map((arquivo, index) => (
-                <li key={index} className="flex items-center justify-between bg-neutral-100 p-3 rounded border">
 
-                    <div className="flex items-center space-x-3 overflow-hidden">
-                        <DocumentTextIcon className='w-8 h-8 '></DocumentTextIcon>
-                        <div className="truncate">
-                            <p className="text-sm font-medium text-gray-700 truncate">{arquivo.name}</p>
-                            <p className="text-xs text-gray-500">{(arquivo.size / 1024 / 1024).toFixed(2)} MB</p>
-                        </div>
-                    </div>
-                    <button onClick={() => removerArquivo(index)} className="text-red-500 cursor-pointer hover:text-red-700 p-1 rounded-full hover:bg-red-50 transition" title="Remover arquivo">
-                       
-                        <TrashIcon className="w-5 h-5"></TrashIcon>
-                    </button>
-                </li>
-             ))}
+          <ul className="space-y-3 max-h-60 overflow-y-auto pr-2">
+            {arquivos.map((arquivo, index) => (
+              <li key={index} className="flex items-center justify-between bg-neutral-100 p-3 rounded border">
+                <div className="flex items-center space-x-3 overflow-hidden">
+                  <DocumentTextIcon className='w-8 h-8 '></DocumentTextIcon>
+                  <div className="truncate">
+                    <p className="text-sm font-medium text-gray-700 truncate">{arquivo.name}</p>
+                    <p className="text-xs text-gray-500">{(arquivo.size / 1024 / 1024).toFixed(2)} MB</p>
+                  </div>
+                </div>
+                <button onClick={() => removerArquivo(index)} className="text-red-500 cursor-pointer hover:text-red-700 p-1 rounded-full hover:bg-red-50 transition" title="Remover arquivo">
+                  <TrashIcon className="w-5 h-5"></TrashIcon>
+                </button>
+              </li>
+            ))}
           </ul>
 
           <div className="mt-6 flex justify-between">
-            <button 
+            
+            <button
               onClick={() => inputArquivoRef.current?.click()}
               className="text-blue-600 hover:underline text-sm font-medium"
             >
-              + Adicionar mais arquivos
+              {multiple ? '+ Adicionar mais arquivos' : 'Substituir arquivo'}
             </button>
-            <div className='flex gap-2'>
-
-            <Button
-            text='Limpar'
-            onClick={()=>{setArquivos([])}}
-            className="bg-neutral-100  hover:bg-neutral-200 text-[#404040] border-2 border-[#3F3E3E]"
-            />
-            <Button
-            text='Salvar'
-            onClick={onSubmit}
-            className="text-white"
-            isLoading={isLoading}
-            />
+            
+            <div className={multiple === false ? "hidden" :'flex gap-2'}>
+              <Button
+                text='Limpar'
+                onClick={() => { setArquivos([]) }}
+                className="bg-neutral-100  hover:bg-neutral-200 text-[#404040] border-2 border-[#3F3E3E]"
+              />
+              <Button
+                text='Salvar'
+                onClick={onSubmit}
+                className="text-white"
+                isLoading={isLoading}
+              />
             </div>
           </div>
         </div>

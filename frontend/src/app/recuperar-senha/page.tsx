@@ -18,19 +18,19 @@ import logo from "@/assets/logo_findLES_cor.png";
 const Recover = () => {
   const [email, setEmail] = useState<string>("");
   const { showMessage } = useSnackbar();
-  const {push} = useRouter();
+  const { push } = useRouter();
   return (
- 
+
     <div className="min-h-screen flex items-center justify-center bg-[#EBE9E1]">
-      
-      
+
+
       <div className="bg-white p-10 w-full shadow-[4px_4px_5px_rgba(0,0,0,0.40)] border border-[#898989] max-w-105">
-        
+
         <Image
-            alt="logo"
-            src={logo}
-            className="ml-auto mr-auto cursor-pointer w-40 h-16 "
-            onClick={() => push("/login")}
+          alt="logo"
+          src={logo}
+          className="ml-auto mr-auto cursor-pointer w-40 h-16 "
+          onClick={() => push("/login")}
         />
         {/*<h1 className="text-3xl font-medium text-center text-black">
           FindLES
@@ -44,40 +44,40 @@ const Recover = () => {
 
 
           <div className="flex items-stretch border border-gray-400 mb-8">
-          
-          <div className="w-3 bg-gray-300 shrink-0"></div>
-          
-          <div className="p-4 text-sm text-gray-700 font-medium leading-relaxed flex gap-2">
-             Informe o e-mail da sua conta para receber o link de recuperação.
+
+            <div className="w-3 bg-gray-300 shrink-0"></div>
+
+            <div className="p-4 text-sm text-gray-700 font-medium leading-relaxed flex gap-2">
+              Informe o e-mail da sua conta para receber o link de recuperação.
+            </div>
           </div>
-        </div>
-          
+
           <div className="mb-4">
-            
+
             <Input
-                id="email"
-                type="email"
-                onChange={(e)=>{setEmail(e.target.value)}}
-                label="E-mail cadastrado"
-                value={email}
+              id="email"
+              type="email"
+              onChange={(e) => { setEmail(e.target.value) }}
+              label="E-mail cadastrado"
+              value={email}
             />
-            
+
           </div>
 
-         
 
-          <div className="flex justify-center mb-4">    
+
+          <div className="flex justify-center mb-4">
 
             <Button
-             onClick={()=>{showMessage({ message: "Não implementado", type: "warning" })}}
-             text="Enviar"
-             className="text-white"
+              onClick={() => { showMessage({ message: "Não implementado", type: "warning" }) }}
+              text="Enviar"
+              className="text-white"
             />
           </div>
 
           <div className="flex justify-center">
             <a href="/login" className="text-xs text-gray-500 underline hover:text-gray-700 flex items-center gap-1">
-               <ArrowLeftIcon className="w-2.5 h-2.5"></ArrowLeftIcon> voltar ao login
+              <ArrowLeftIcon className="w-2.5 h-2.5"></ArrowLeftIcon> voltar ao login
             </a>
           </div>
 

@@ -38,7 +38,6 @@ export const Header = ({ titulo }: { titulo: string }) => {
     setUserData(user);
   }, [getUser]);
 
-  console.log(userData)
 
 
 

@@ -34,6 +34,30 @@ class DocumentoService {
     })
   }
 
+  async editar(idDoc: number,arquivo: File[], titulo: string, idCategoria?: number | null): Promise<any> { 
+    
+    // 1. Instancia o pacote FormData
+    const formData = new FormData()
+
+    // 2. Adiciona os arquivos (o nome 'arquivos' tem que bater com o @RequestParam do Java)
+    if (arquivo[0] !== undefined && arquivo[0] !== null){
+      formData.append('arquivo', arquivo[0])
+    }
+    
+    // 3. Adiciona a categoria
+    if (idCategoria !== undefined && idCategoria !== null && idCategoria !== 0) {
+      formData.append('idCategoria', String(idCategoria))
+    }
+
+    formData.append('titulo',titulo)
+
+    return apiService.put<any, FormData>(`${this.baseUrl}/editar/${idDoc}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+  }
+
 
   /**
    * Buscar todos os documentos de uma categoria
@@ -45,8 +69,8 @@ class DocumentoService {
   /**
    * Deletar documento
    */
-  async delete(id: number): Promise<void> {
-    return apiService.delete<void>(`${this.baseUrl}/${id}`)
+  async delete(id: number): Promise<string> {
+    return apiService.delete<string>(`${this.baseUrl}/remover/${id}`)
   }
 
   async getAll(
@@ -59,8 +83,12 @@ class DocumentoService {
     return apiService.getPaginated<listagemDocumentoDto>(this.baseUrl, page, filters)
   }
 
+  async getById(id: number) : Promise<listagemDocumentoDto>{
+    return apiService.get<listagemDocumentoDto>(this.baseUrl + "/" + String(id))
+  }
+
   async AbrirDocumento(id: number): Promise<void> {
-    return apiService.openFile(this.baseUrl + "/" + String(id))
+    return apiService.openFile(this.baseUrl + "/abrir/" + String(id))
   }
 
 

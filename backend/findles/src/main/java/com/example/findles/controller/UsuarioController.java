@@ -1,15 +1,21 @@
 package com.example.findles.controller;
 
 import com.example.findles.domain.dto.request.DadosCadastroUsuarioDTO;
+import com.example.findles.domain.dto.request.DadosEditarUsuarioDTO;
+import com.example.findles.domain.dto.response.DadosAuditoriaDTO;
+import com.example.findles.domain.dto.response.DadosUsuarioDTO;
+import com.example.findles.domain.entity.Usuario;
+import com.example.findles.service.AuditoriaService;
 import com.example.findles.service.UsuarioService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import org.slf4j.Logger;
@@ -23,6 +29,9 @@ public class UsuarioController {
 
     @Autowired
     private UsuarioService usuarioService;
+
+    @Autowired
+    private AuditoriaService auditoriaService;
 
     @PostMapping
     @Transactional // Mantemos o Transactional aqui na borda da aplicação
@@ -41,6 +50,46 @@ public class UsuarioController {
             // Se o Service reclamar (ex: email duplicado), devolvemos o erro 400 Bad Request
             logger.error("Erro ao cadastrar usuário: {}", e.getMessage());
             return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping
+    public ResponseEntity<Page<DadosUsuarioDTO>> listar(
+            @RequestParam(required = false) String nomeOuEmail,
+            @RequestParam(required = false) Integer idPerfil,
+            @PageableDefault(size = 10, sort = {"cadastradoEm"}) Pageable paginacao) {
+
+        var pagina = usuarioService.listar(nomeOuEmail,idPerfil,paginacao);
+        return ResponseEntity.ok(pagina);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Usuario> editar(
+            @PathVariable Integer id,
+            @RequestBody @Valid DadosEditarUsuarioDTO dados,
+            @AuthenticationPrincipal Usuario usuarioLogado) {
+
+        try {
+            Integer perfilUsuarioASerEditado = usuarioService.getUsuario(id).getPerfil().getId();
+            Usuario usuarioAtualizado = usuarioService.atualizarUsuario(id, dados);
+
+            if(dados.role().equals(perfilUsuarioASerEditado)){
+                auditoriaService.criarHistorico(usuarioLogado,"Editar usuário com id " + id,"");
+            }else{
+                if(dados.role().equals(1)){
+                    auditoriaService.criarHistorico(usuarioLogado,"Tornou " + usuarioAtualizado.getEmail() + " um usuário","");
+                }else{
+                    auditoriaService.criarHistorico(usuarioLogado,"Tornou " + usuarioAtualizado.getEmail() + " um administrador","");
+                }
+            }
+
+            return ResponseEntity.ok(usuarioAtualizado); // Retorna 200 OK com os novos dados
+
+
+        } catch (Exception e) {
+            logger.error("Erro ao Editar usuário: {}", e.getMessage());
+            auditoriaService.criarHistorico(usuarioLogado,"Editar usuário com id " + id,e.getMessage());
+            return ResponseEntity.badRequest().build(); // Retorna 400 para outros erros
         }
     }
 }

@@ -31,7 +31,6 @@ export default function MainLayout({
 
   //const dispatch = useAppDispatch();
   const perfil = useSelector(getPerfil)
-  console.log(perfil)
   const {getUser, signOut} = useContext(AuthContext)
   
   

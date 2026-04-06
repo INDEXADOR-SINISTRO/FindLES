@@ -2,6 +2,7 @@ package com.example.findles.service;
 
 import com.example.findles.domain.entity.*;
 import com.example.findles.repository.*;
+import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -324,4 +325,150 @@ public class DocumentoService {
             throw e;
         }
     }
+
+
+    public void removerLogicamente(Integer id){
+        try{
+            logger.info("Removendo lógicamente arquivo com id: {}", id);
+            repository.atualizarStatusParaRemovido(id);
+            repository.deletarIndicesPorDocumento(id);
+        } catch (Exception e) {
+            logger.error("Falha ao remover arquivo: {}", e.getMessage());
+            throw new RuntimeException(e);
+        }
+    }
+
+    public DadosListagemDocumentoDTO getArquivo(Integer id){
+
+            Documento doc = repository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Documento não encontrado com o ID: " + id));
+
+            return new DadosListagemDocumentoDTO(doc);
+
+    }
+
+    @Transactional
+    public Documento atualizarOuCriarVersao(Integer idDocumento, String novoTitulo, Integer idCategoria, MultipartFile arquivo) throws Exception {
+
+        // 1. Busca o documento pai (o atual)
+        Documento docAtual = repository.findById(idDocumento)
+                .orElseThrow(() -> new EntityNotFoundException("Documento não encontrado."));
+
+        // Busca a nova categoria (se foi enviada)
+        Categoria novaCategoria = null;
+        if (idCategoria != null ) {
+            novaCategoria = categoriaRepository.findById(idCategoria)
+                    .orElseThrow(() -> new EntityNotFoundException("Categoria não encontrada."));
+        }
+
+        // ==========================================
+        // CASO 1: NÃO VEIO ARQUIVO (Apenas Update)
+        // ==========================================
+        if (arquivo == null || arquivo.isEmpty()) {
+            if (novoTitulo != null && !novoTitulo.trim().isEmpty()) {
+                docAtual.setTitulo(novoTitulo);
+            }
+            if (novaCategoria != null) {
+
+                docAtual.setCategoria(novaCategoria);
+            }else{
+                docAtual.setCategoria(null);
+            }
+
+
+
+
+            docAtual.setAtualizadoEm(LocalDateTime.now());
+
+            return repository.save(docAtual);
+        }
+
+        // ==========================================
+        // CASO 2: VEIO ARQUIVO (Criar Nova Versão)
+        // ==========================================
+
+        // 2.1 Faz o upload físico do novo arquivo e gera o hash
+
+        String nomeUnico = UUID.randomUUID() + "_" + novoTitulo;
+        Path caminhoFisico = Paths.get(DIRETORIO_UPLOADS + nomeUnico);
+
+        Files.copy(arquivo.getInputStream(), caminhoFisico, StandardCopyOption.REPLACE_EXISTING);
+
+        String novoCaminho = caminhoFisico.toString();
+        String novoHash = calcularHash(arquivo.getBytes());
+
+        if (repository.existsByHashConteudo(novoHash)) {
+            throw new IllegalArgumentException("O arquivo '" + novoTitulo + "' já foi inserido anteriormente no sistema (conteúdo duplicado).");
+        }
+
+        // 2.2 Incrementa a versão (Ex: "1" vira "2", ou "1.0" vira "2.0")
+        String novaVersao = incrementarVersao(docAtual.getNumeroVersao());
+
+        // Inativar o documento antigo
+        StatusDocumento statusInativo = statusRepository.findById(2) //  ID 2 como INATIVO
+                .orElseThrow(() -> new RuntimeException("Status INATIVO não encontrado no banco."));
+
+        docAtual.setStatusDoc(statusInativo);
+        docAtual.setAtualizadoEm(LocalDateTime.now());
+        repository.save(docAtual); // Atualiza o antigo no banco
+        // ----------------------------------------------------
+
+        // 2.3 Cria o NOVO documento
+        Documento docNovo = new Documento();
+
+        // Define o título e categoria (se vieram na requisição usa os novos, senão herda do pai)
+        docNovo.setTitulo(novoTitulo != null ? novoTitulo : docAtual.getTitulo());
+        docNovo.setCategoria(novaCategoria);
+
+        // Herda dados de versionamento e autoria
+        if(docAtual.getDocumentoOrigem() != null){
+            docNovo.setDocumentoOrigem(docAtual.getDocumentoOrigem());
+        }else{
+            docNovo.setDocumentoOrigem(docAtual); // Define o pai!
+        }
+        
+        docNovo.setNumeroVersao(novaVersao);
+        docNovo.setInseridoPor(docAtual.getInseridoPor()); // Ou pode pegar o usuário logado no contexto
+        StatusDocumento statusPendente = statusRepository.findById(3) //  ID 3 como PENDENTE
+                .orElseThrow(() -> new RuntimeException("Status PENDENTE não encontrado no banco."));
+
+
+        docNovo.setStatusDoc(statusPendente);
+
+        // Dados do novo arquivo
+        docNovo.setCaminhoArquivo(novoCaminho);
+        docNovo.setHashConteudo(novoHash);
+        docNovo.setCriadoEm(LocalDateTime.now());
+        docNovo.setAtualizadoEm(LocalDateTime.now());
+
+        // Opcional, mas RECOMENDADO: Inativar a versão antiga para não aparecer nas buscas normais
+        // Status 2 poderia ser "HISTORICO" ou "OBSOLETO"
+        // docAtual.setStatusDoc(statusRepository.findById(2).get());
+        // documentoRepository.save(docAtual);
+
+        // 2.4 Salva e retorna o novo documento como principal
+
+        return repository.save(docNovo);
+    }
+
+    private String incrementarVersao(String versaoAtual) {
+        if (versaoAtual == null || versaoAtual.isEmpty()) return "1";
+
+        try {
+            // Se for um número com ponto (ex: 1.0)
+            if (versaoAtual.contains(".")) {
+                String[] partes = versaoAtual.split("\\.");
+                int numeroPrincipal = Integer.parseInt(partes[0]);
+                return (numeroPrincipal + 1) + ".0";
+            } else {
+                // Se for um número inteiro simples (ex: 1)
+                int numero = Integer.parseInt(versaoAtual);
+                return String.valueOf(numero + 1);
+            }
+        } catch (NumberFormatException e) {
+            // Se o padrão for muito louco (ex: "v1-alpha"), força para "2" para evitar quebra
+            return versaoAtual + "-nova-versao";
+        }
+    }
+
 }

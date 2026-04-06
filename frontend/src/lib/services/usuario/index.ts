@@ -1,5 +1,5 @@
-import { apiService } from '../apiService'
-import { UserDto } from '@/types/user' 
+import { apiService, PaginatedResponse } from '../apiService'
+import { UserDto, UserEditarDto } from '@/types/user' 
 
 class UserService {
   private readonly baseUrl = '/usuarios'
@@ -22,6 +22,16 @@ class UserService {
     return apiService.get<UserDto[]>(`${this.baseUrl}`)
   }
 
+  async getAll(
+      page: number = 1,
+      filters: Record<string, any> = {
+          size: 10,              
+          sort: 'cadastradoEm,desc'  
+        },
+    ): Promise<PaginatedResponse<UserDto>> {
+      return apiService.getPaginated<UserDto>(this.baseUrl, page, filters)
+    }
+
   /**
    * Buscar  por ID
    */
@@ -39,8 +49,8 @@ class UserService {
   /**
    * Atualizar 
    */
-  async update(id: number, data: UserDto): Promise<UserDto> {
-    return apiService.put<UserDto, UserDto>(`${this.baseUrl}/${id}`, data)
+  async update(id: number, data: UserEditarDto): Promise<UserDto> {
+    return apiService.put<UserDto, UserEditarDto>(`${this.baseUrl}/${id}`, data)
   }
 
   /**

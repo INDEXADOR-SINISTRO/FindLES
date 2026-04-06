@@ -13,6 +13,7 @@ type InputProps = {
   label?: string;
   disabled?: boolean;
   isPassword?: boolean;
+  maxCaracteres?: number;
 };
 
 const Input = ({
@@ -27,6 +28,7 @@ const Input = ({
     label,
     disabled = false,
     isPassword = false,
+    maxCaracteres = undefined
 }:InputProps) => {
     const desabilitado = " text-gray-400 "
     const baseStyle = " w-full h-10 px-2 bg-[#EBEAE4]  border shadow-[2px_2px_5px_rgba(0,0,0,0.30)] focus:outline-none focus:ring-1 focus:ring-gray-600 "
@@ -74,6 +76,7 @@ const Input = ({
                     <input
                         value={value}
                         id={id}
+                        maxLength={maxCaracteres}
                         disabled={disabled}
                         onChange={onChange}
                         type={isPassword ? escondido : type}

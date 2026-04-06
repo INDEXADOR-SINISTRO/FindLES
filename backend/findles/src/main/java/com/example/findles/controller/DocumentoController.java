@@ -3,10 +3,12 @@ package com.example.findles.controller;
 import com.example.findles.service.AuditoriaService;
 import com.example.findles.service.DocumentoService;
 import com.example.findles.domain.entity.Usuario;
+import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -44,7 +46,6 @@ public class DocumentoController {
     public ResponseEntity<String> fazerUpload(
             @RequestParam("arquivos") List<MultipartFile> arquivos,
             @RequestParam(value = "idCategoria", required = false) Integer idCategoria,
-            // Pega o usuário que está logado no momento pelo Token JWT!
             @AuthenticationPrincipal Usuario usuarioLogado
     ) {
         try {
@@ -60,6 +61,43 @@ public class DocumentoController {
 
     }
 
+    @PutMapping(value = "/editar/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> atualizarDocumento(
+            @PathVariable Integer id,
+            @RequestParam(value = "titulo", required = false) String titulo,
+            @RequestParam(value = "idCategoria", required = false) Integer idCategoria,
+            @RequestParam(value = "arquivo", required = false) MultipartFile arquivo,
+            @AuthenticationPrincipal Usuario usuarioLogado) {
+
+        try {
+            // Chama o serviço passando todos os parâmetros. O arquivo pode ser nulo.
+            logger.info("Editar arquivo {}:", id);
+            var editouOuCriouVersao = documentoService.atualizarOuCriarVersao(id, titulo, idCategoria, arquivo);
+            if(editouOuCriouVersao.getId().equals(id)){
+                logger.info("Arquivo editado com sucesso {}: ", id);
+                auditoriaService.criarHistorico(usuarioLogado,"Editar arquivo de id " + id,"");
+
+            }else{
+                logger.info("Versão {} do arquivo {} foi criada ",editouOuCriouVersao.getNumeroVersao(), id);
+                auditoriaService.criarHistorico(usuarioLogado,"Criou a versão " + editouOuCriouVersao.getNumeroVersao() + " do arquivo " + id ,"");
+
+            }
+
+
+            return ResponseEntity.ok("Arquivo atualizado");
+
+        } catch (EntityNotFoundException e) {
+            logger.error("Erro ao editar arquivo: {}", e.getMessage());
+            auditoriaService.criarHistorico(usuarioLogado,"Editar arquivo de id " + id,e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            logger.error("Erro ao editar arquivo: {}", e.getMessage());
+            auditoriaService.criarHistorico(usuarioLogado,"Editar arquivo de id " + id,e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erro ao processar documento: " + e.getMessage());
+        }
+    }
+
 
     @GetMapping
     public ResponseEntity<Page<DadosListagemDocumentoDTO>> listar(
@@ -73,7 +111,7 @@ public class DocumentoController {
         return ResponseEntity.ok(pagina);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/abrir/{id}")
     public ResponseEntity<Resource> abrirPdf(@PathVariable Integer id) {
 
         logger.info("Abrir arquivo com id: {}", id);
@@ -123,6 +161,34 @@ public class DocumentoController {
         } catch (Exception e) {
             auditoriaService.criarHistorico(usuarioLogado,"Calcular tf-idf de documentos ativos",e.getMessage());
             return ResponseEntity.internalServerError().body("Erro ao calcular TF-IDF: " + e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/remover/{id}")
+    public ResponseEntity<String> delete(
+            @PathVariable Integer id,
+            @AuthenticationPrincipal Usuario usuarioLogado) {
+
+        try {
+            documentoService.removerLogicamente(id);
+            auditoriaService.criarHistorico(usuarioLogado,"Remover arquivo com id " + id,"");
+            return ResponseEntity.ok("Arquivo com id " + id + " removido com sucesso");
+        } catch (Exception e) {
+            auditoriaService.criarHistorico(usuarioLogado,"Remover arquivo com id " + id, e.getMessage());
+            return ResponseEntity.internalServerError().body("Erro ao remover arquivo " + id + ": " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> get(@PathVariable Integer id) {
+        try {
+            var arquivo = documentoService.getArquivo(id);
+            return ResponseEntity.ok(arquivo);
+
+        } catch (Exception e) {
+            logger.error("Erro ao buscar o arquivo {}: {}",id, e.getMessage());
+            return ResponseEntity.internalServerError()
+                    .body("Erro ao buscar o arquivo " + id + ": " + e.getMessage());
         }
     }
 }

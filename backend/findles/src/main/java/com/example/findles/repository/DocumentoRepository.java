@@ -1,13 +1,16 @@
 package com.example.findles.repository;
 
 import com.example.findles.domain.entity.Documento;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface DocumentoRepository extends JpaRepository<Documento, Integer> {
 
@@ -23,6 +26,17 @@ public interface DocumentoRepository extends JpaRepository<Documento, Integer> {
             @Param("dataDe") LocalDateTime dataDe,
             @Param("dataAte") LocalDateTime dataAte,
             Pageable pageable);
+
+
+    @Transactional
+    @Modifying
+    @Query("UPDATE Documento d SET d.statusDoc.id = 2 WHERE d.id = :id")
+    void atualizarStatusParaRemovido(@Param("id") Integer id);
+
+    @Transactional
+    @Modifying
+    @Query("DELETE FROM IndiceInvertido i WHERE i.documento.id = :id")
+    void deletarIndicesPorDocumento(@Param("id") Integer id);
 
     List<Documento> findByStatusDocId(Integer idStatus);
 

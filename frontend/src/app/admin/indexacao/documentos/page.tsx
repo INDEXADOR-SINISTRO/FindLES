@@ -10,47 +10,53 @@ import { formatarDataHora } from '@/lib/utils/date';
 import { CategoriaList, listagemDocumentoDto } from '@/types/documento';
 import { DocumentDuplicateIcon, EyeIcon, PencilIcon, PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { ArrowLeftIcon, ArrowLongLeftIcon, ChevronLeftIcon, ChevronRightIcon, FunnelIcon, HandThumbDownIcon } from '@heroicons/react/24/solid';
-import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import React, { useEffect, useRef, useState } from 'react';
 
 const optionsMaxResultados: OptionType[] = [
-        {
-            value: "5",
-            optionLabel: "5"
-        },
-        {
-            value: "10",
-            optionLabel: "10"
-        },
-        {
-            value: "20",
-            optionLabel: "20"
-        },
-        {
-            value: "50",
-            optionLabel: "50"
-        },
-        {
-            value: "100",
-            optionLabel: "100"
-        },
+    {
+        value: "5",
+        optionLabel: "5"
+    },
+    {
+        value: "10",
+        optionLabel: "10"
+    },
+    {
+        value: "20",
+        optionLabel: "20"
+    },
+    {
+        value: "50",
+        optionLabel: "50"
+    },
+    {
+        value: "100",
+        optionLabel: "100"
+    },
 
-    ]
+]
 
 
 
 const Documentos = () => {
 
+    const { push } = useRouter();
+
     // Estados da Paginação
     const [paginaAtual, setPaginaAtual] = useState(1);
-    const [size, setSize] = useState<number>(5); // Quantos itens mostrar por vez
+    const [size, setSize] = useState<number>(10); // Quantos itens mostrar por vez
     const [isOpenDelete, setIsOpenDelete] = useState<boolean>(false)
     const [isOpenIndexar, setIsOpenIndexar] = useState<boolean>(false)
-    const [isLoadingTfIdf,setIsLoadingTfIdf] = useState<boolean>(false)
-    const [isLoadingIndexar,setIsLoadingIndexar] = useState<boolean>(false)
+    const [isLoadingTfIdf, setIsLoadingTfIdf] = useState<boolean>(false)
+    const [isLoadingIndexar, setIsLoadingIndexar] = useState<boolean>(false)
+    const [isLoadingRemover, setIsLoadingRemover] = useState<boolean>(false)
     const [isOpenCalcular, setIsOpenCalcular] = useState<boolean>(false)
     const [titulo, setTitulo] = useState<string>("")
 
-    const [maxResultados,setMaxResultados] = useState<number>(5)
+    const [docIdSelecionado, setDocIdSelecionado] = useState<number>(0)
+
+    const [maxResultados, setMaxResultados] = useState<number>(5)
 
     const [totalPaginas, setTotalPaginas] = useState(0)
     const [totalArquivos, setTotalArquivos] = useState(0)
@@ -69,14 +75,14 @@ const Documentos = () => {
             optionLabel: item.descricao
         })
     );
-    
-    
+
+
     const [dataDe, setDataDe] = useState("");
     const [dataAte, setDataAte] = useState("");
 
     const handleAplicar = () => {
         setPaginaAtual(1)
-        buscarDocumentos(titulo, 1, size, categoria,dataDe,dataAte)
+        buscarDocumentos(titulo, 1, size, categoria, dataDe, dataAte)
     };
 
     const handleLimpar = () => {
@@ -98,27 +104,43 @@ const Documentos = () => {
         }
     };
 
-    const handleIndexar = async( )=>{
-        try{
+    const handleIndexar = async () => {
+        try {
             setIsLoadingIndexar(true);
             const response = await documentoService.indexarDocumentos();
-            showMessage({ message: response , type: "success" });
+            showMessage({ message: response, type: "success" });
             setIsLoadingIndexar(false);
             setIsOpenIndexar(false);
-        }catch(error){
+        } catch (error) {
             setIsLoadingIndexar(false)
             showMessage({ message: "Não foi possível indexar documentos", type: "error" });
         }
         handleAplicar();
     }
-    const handleCalcularTfIdf = async( )=>{
-        try{
+
+    const handleRemoverLogicamente = async (id: number) => {
+        try {
+            setIsLoadingRemover(true);
+            const response = await documentoService.delete(id);
+            showMessage({ message: response, type: "success" });
+            setIsOpenDelete(false);
+        } catch (error) {
+            showMessage({ message: "Não foi remover o documento", type: "error" });
+        } finally {
+            setIsLoadingRemover(false)
+        }
+        handleAplicar();
+    }
+
+
+    const handleCalcularTfIdf = async () => {
+        try {
             setIsLoadingTfIdf(true);
             const response = await documentoService.calcularTfIdf();
-            showMessage({ message: response , type: "success" });
+            showMessage({ message: response, type: "success" });
             setIsLoadingTfIdf(false);
             setIsOpenCalcular(false);
-        }catch(error){
+        } catch (error) {
             setIsLoadingTfIdf(false)
             showMessage({ message: "Não foi possível calcular tf-idf", type: "error" });
         }
@@ -126,12 +148,12 @@ const Documentos = () => {
 
 
     useEffect(() => {
-        
-        buscarDocumentos("", paginaAtual, size, categoria,dataDe,dataAte)
+
+        buscarDocumentos("", paginaAtual, size, categoria, dataDe, dataAte)
     }, [])
 
 
-    const buscarDocumentos = async (titulo: string, paginaAtual: number, size: number, categoria: string,dataDe: string, dataAte: string) => {
+    const buscarDocumentos = async (titulo: string, paginaAtual: number, size: number, categoria: string, dataDe: string, dataAte: string) => {
         try {
             setNadaEncontrado(false)
             setPaginaAtual(1)
@@ -150,6 +172,7 @@ const Documentos = () => {
             if (response.content.length === 0) {
                 setNadaEncontrado(true)
             }
+            rolarParaOTopo();
             setDocs(response.content)
             setTotalPaginas(response.page.totalPages)
             setTotalArquivos(response.page.totalElements)
@@ -160,30 +183,39 @@ const Documentos = () => {
         }
     };
 
+    const topoRef = useRef<HTMLDivElement>(null);
+
+    const rolarParaOTopo = () => {
+        if (topoRef.current) {
+            topoRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
+
     return (<div className="flex flex-col items-center">
+        <div ref={topoRef}></div>
 
         <div className='w-full mb-4 flex justify-between items-center'>
-            
+
             <a href="/admin/indexacao" className="text-sm text-gray-500 underline hover:text-gray-800 flex items-center gap-1 ">
-              <ArrowLongLeftIcon className="w-4 h-4"></ArrowLongLeftIcon>
-              voltar
+                <ArrowLongLeftIcon className="w-4 h-4"></ArrowLongLeftIcon>
+                voltar
             </a>
             <div className='flex gap-2'>
-            <Button
-            onClick={()=>{setIsOpenIndexar(true)}}
-            className='text-white text-sm '
-            text='Indexar'
-            />
+                <Button
+                    onClick={() => { setIsOpenIndexar(true) }}
+                    className='text-white text-sm '
+                    text='Indexar'
+                />
 
-            <Button
-            onClick={()=>{setIsOpenCalcular(true)}}
-            className='bg-neutral-100  hover:bg-neutral-200 text-[#404040] border border-[#3F3E3E] text-sm '
-            text='Cálcular TF-IDF'
-            />
+                <Button
+                    onClick={() => { setIsOpenCalcular(true) }}
+                    className='bg-neutral-100  hover:bg-neutral-200 text-[#404040] border border-[#3F3E3E] text-sm '
+                    text='Cálcular TF-IDF'
+                />
             </div>
         </div>
 
-        <div className='mb-10 flex items-end w-full'>
+        <div className='mb-5 flex items-end w-full'>
             <Input
                 id='titulo'
                 value={titulo}
@@ -193,16 +225,16 @@ const Documentos = () => {
                 className='w-full'
             />
             <Button
-                onClick={() => { buscarDocumentos(titulo, 1, size,categoria,dataDe,dataAte) }}
+                onClick={() => { buscarDocumentos(titulo, 1, size, categoria, dataDe, dataAte) }}
                 className=" text-white "
                 text='Buscar'
             />
         </div>
         {/* Container principal com a cor de fundo bege*/}
-        
 
-        
-        <div className={`border border-[#c5c3b9] bg-[#EAE8E1] p-3 w-full mb-10 shadow-md`}>
+
+
+        <div className={`border border-[#c5c3b9] bg-[#EAE8E1] p-3 w-full mb-5 shadow-md`}>
 
             {/* Cabeçalho do Filtro (Clicável) */}
             <button
@@ -218,7 +250,7 @@ const Documentos = () => {
                 </svg>
                 <FunnelIcon className='w-5 h-5'></FunnelIcon>
                 <span className="text-sm">Filtros</span>
-                
+
             </button>
 
             {/* A MÁGICA DA TRANSIÇÃO AQUI */}
@@ -246,31 +278,31 @@ const Documentos = () => {
                         </div>
 
                         <div className="flex flex-col gap-1 w-58">
-                            
+
                             <Input
-                            id="dataDe"
-                            onChange={(e) => setDataDe(e.target.value)}
-                            type="date"
-                            label="Data - DE"
-                            value={dataDe}
-                            className='text-[#7e7d77] text-xs  '
+                                id="dataDe"
+                                onChange={(e) => setDataDe(e.target.value)}
+                                type="date"
+                                label="Data - DE"
+                                value={dataDe}
+                                className='text-[#7e7d77] text-xs  '
                             />
                         </div>
 
                         <div className="flex flex-col gap-1 w-58">
-                            
+
                             <Input
-                            id="dataAte"
-                            onChange={(e) => setDataAte(e.target.value)}
-                            type="date"
-                            label="Data - ATÉ"
-                            value={dataAte}
-                            className='text-[#7e7d77] text-xs  '
+                                id="dataAte"
+                                onChange={(e) => setDataAte(e.target.value)}
+                                type="date"
+                                label="Data - ATÉ"
+                                value={dataAte}
+                                className='text-[#7e7d77] text-xs  '
                             />
                         </div>
 
                         <div className="flex flex-col gap-1 w-58">
-                            
+
                             <Select
                                 id="maxResultados"
                                 onChange={(e) => setSize(Number(e.target.value))}
@@ -286,15 +318,15 @@ const Documentos = () => {
 
                     {/* Botões de Ação */}
                     <div className="flex items-center gap-3 mt-6 pb-1">
-                        
+
                         <Button
-                        onClick={handleAplicar}
+                            onClick={handleAplicar}
                             text='Aplicar filtros'
                             className='text-white font-medium text-sm '
                         />
-                        
+
                         <Button
-                        onClick={handleLimpar}
+                            onClick={handleLimpar}
                             text='Limpar'
                             className='bg-neutral-100  hover:bg-neutral-200 text-[#404040] border border-[#3F3E3E] text-sm '
                         />
@@ -345,7 +377,7 @@ const Documentos = () => {
                             className={`${index % 2 === 0 ? 'bg-white' : 'bg-[#F2F1EC]'} border-b border-[#c5c3b9] hover:bg-[#e4e2d8] transition-colors`}
                         >
                             <td className="p-4 border-r border-[#c5c3b9] text-[#555555] font-medium text-left">
-                                {(maxResultados*(paginaAtual -1)) + 1 + index }
+                                {(maxResultados * (paginaAtual - 1)) + 1 + index}
                             </td>
                             <td className="p-4 border-r border-[#c5c3b9] text-[#555555] font-medium text-left">
                                 {doc.titulo}
@@ -370,9 +402,10 @@ const Documentos = () => {
                                     <EyeIcon className='w-6 h-6 cursor-pointer'></EyeIcon>
                                 </button>
 
-                                {/* Botão Baixar */}
+                                {/* Botão Atualizar */}
                                 <button className="text-[#3f3f3f] hover:text-blue-700 transition-colors" title="Atualizar"
-                                    onClick={() => showMessage({ message: "Não implementado", type: "warning" })}>
+
+                                    onClick={() => push(`/admin/indexacao/documentos/${doc.id}`)}>
                                     <PencilSquareIcon className="w-6 h-6 cursor-pointer"></PencilSquareIcon>
                                 </button>
                                 {/* Botão historico */}
@@ -385,6 +418,7 @@ const Documentos = () => {
                                 <button className="text-red-500 hover:opacity-60 transition-colors" title="Remover"
                                     onClick={() => {
                                         setIsOpenDelete(!isOpenDelete)
+                                        setDocIdSelecionado(doc.id)
                                     }}
                                 >
                                     <TrashIcon className="w-6 h-6 cursor-pointer"></TrashIcon>
@@ -411,7 +445,7 @@ const Documentos = () => {
                     <button
                         disabled={paginaAtual === 1}
                         onClick={() => {
-                            buscarDocumentos(titulo, paginaAtual - 1, size,categoria,dataDe,dataAte)
+                            buscarDocumentos(titulo, paginaAtual - 1, size, categoria, dataDe, dataAte)
                             setPaginaAtual(paginaAtual - 1)
                         }}
                         className={"px-2 py-2 bg-[#E6E5DC] border border-[#c5c3b9] text-[#4a4a4a] hover:bg-[#d5d4cb] disabled:opacity-50 disabled:cursor-not-allowed transition-colors disabled:hover:bg-[#E6E5DC]"}
@@ -420,7 +454,7 @@ const Documentos = () => {
                     </button>
                     <button
                         onClick={() => {
-                            buscarDocumentos(titulo, 1, size,categoria,dataDe,dataAte)
+                            buscarDocumentos(titulo, 1, size, categoria, dataDe, dataAte)
                             setPaginaAtual(1)
                         }}
                         disabled={paginaAtual === 1}
@@ -434,7 +468,7 @@ const Documentos = () => {
                     <button
                         disabled={true}
                         onClick={() => {
-                            buscarDocumentos(titulo, 1, size,categoria,dataDe,dataAte)
+                            buscarDocumentos(titulo, 1, size, categoria, dataDe, dataAte)
                             setPaginaAtual(1)
                         }}
                         className={paginaAtual === 1 || paginaAtual === totalPaginas ? "hidden" : "px-4 py-2 bg-[#3f3f3f] border border-[#c5c3b9] text-white font-bold cursor-not-allowed"}
@@ -448,7 +482,7 @@ const Documentos = () => {
                     </div>
                     <button
                         onClick={() => {
-                            buscarDocumentos(titulo, totalPaginas, size,categoria,dataDe,dataAte)
+                            buscarDocumentos(titulo, totalPaginas, size, categoria, dataDe, dataAte)
                             setPaginaAtual(totalPaginas)
                         }}
                         disabled={paginaAtual === totalPaginas}
@@ -459,7 +493,7 @@ const Documentos = () => {
                     <button
                         disabled={paginaAtual === totalPaginas}
                         onClick={() => {
-                            buscarDocumentos(titulo, paginaAtual + 1, size,categoria,dataDe,dataAte )
+                            buscarDocumentos(titulo, paginaAtual + 1, size, categoria, dataDe, dataAte)
                             setPaginaAtual(paginaAtual + 1)
                         }}
                         className={"px-2 py-2 bg-[#E6E5DC] border border-[#c5c3b9] text-[#4a4a4a] hover:bg-[#d5d4cb] disabled:hover:bg-[#E6E5DC] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"}
@@ -474,7 +508,8 @@ const Documentos = () => {
             isOpen={isOpenDelete}
             onClose={() => { setIsOpenDelete(false) }}
             title='Apagar arquivo'
-            onConfirm={() => showMessage({ message: "Não implementado", type: "warning" })}
+            onConfirm={() => { handleRemoverLogicamente(docIdSelecionado) }}
+            isLoading={isLoadingRemover}
 
         >
             <div className='text-[#898989] text-lg'>
@@ -492,7 +527,7 @@ const Documentos = () => {
         >
             <div className='text-[#898989] text-lg'>
                 Ao confirmar todos os documentos com status "Pendente" serão indexados
-             </div>
+            </div>
 
         </Dialog>
         <Dialog

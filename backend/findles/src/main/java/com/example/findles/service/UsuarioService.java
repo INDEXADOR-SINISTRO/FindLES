@@ -1,16 +1,25 @@
 package com.example.findles.service;
 
+import com.example.findles.domain.dto.request.DadosEditarUsuarioDTO;
+
+import com.example.findles.domain.dto.response.DadosUsuarioDTO;
+
 import com.example.findles.domain.entity.Usuario;
 import com.example.findles.domain.dto.request.DadosCadastroUsuarioDTO;
 import com.example.findles.domain.mapper.UsuarioMapper;
 import com.example.findles.repository.PerfilUsuarioRepository;
 import com.example.findles.repository.UsuarioRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UsuarioService {
@@ -49,5 +58,58 @@ public class UsuarioService {
         logger.info("Usuário cadastrado com id: {}", novoUsuario.getId());
         // 5. Salva e retorna
         return usuarioRepository.save(novoUsuario);
+    }
+
+    public Page<DadosUsuarioDTO> listar(String nomeOuEmail, Integer idPerfil, Pageable paginacao) {
+;
+
+        // O repositório faz todo o trabalho pesado de ignorar o que for null
+        Page<Usuario> usuariosPaginados = usuarioRepository.buscarComFiltrosDinamicos(
+                nomeOuEmail,
+                idPerfil,
+                paginacao
+        );
+
+        return usuariosPaginados.map(DadosUsuarioDTO::new);
+    }
+
+    @Transactional
+    public Usuario atualizarUsuario(Integer id, DadosEditarUsuarioDTO dados) throws Exception {
+        // 1. Busca o usuário que já existe no banco de dados
+        try{
+            logger.info("Editando usuário com id: {}", id);
+
+
+
+            Usuario usuarioExistente = usuarioRepository.findById(id);
+            // 2. Atualiza apenas os campos que podem ser modificados pelo front-end
+            usuarioExistente.setNome(dados.nome());
+            usuarioExistente.setEmail(dados.email());
+
+
+            var novoPerfil = perfilRepository.findById(dados.role())
+                    .orElseThrow(() -> new RuntimeException("Perfil não encontrado no banco de dados."));
+            usuarioExistente.setPerfil(novoPerfil);
+
+
+            // 3. Salva e retorna o usuário atualizado
+            logger.info("Usuário de id {} Editado com sucesso",usuarioExistente.getId());
+            return usuarioRepository.saveAndFlush(usuarioExistente);
+
+        } catch (DataIntegrityViolationException e) {
+            throw new RuntimeException("Tentativa de editar um usuário recusada, email já cadastrado");
+        }catch (Exception e){
+            throw e;
+        }
+
+    }
+
+    public Usuario getUsuario (Integer id) {
+        try{
+            return usuarioRepository.findById(id);
+        }catch (Exception e){
+            throw e;
+        }
+
     }
 }

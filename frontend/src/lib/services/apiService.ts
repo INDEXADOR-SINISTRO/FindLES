@@ -28,7 +28,7 @@ class ApiService {
   async get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
     try {
       const response: any = await apiClient.get<ApiResponse<T>>(url, config)
-      return response.content
+      return response.data
     } catch (error) {
       throw this.handleError(error)
     }
@@ -88,8 +88,8 @@ class ApiService {
    */
   async delete<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
     try {
-      const response = await apiClient.delete<ApiResponse<T>>(url, config)
-      return response.data.content
+      const response = await apiClient.delete<T>(url, config)
+      return response.data
     } catch (error) {
       throw this.handleError(error)
     }

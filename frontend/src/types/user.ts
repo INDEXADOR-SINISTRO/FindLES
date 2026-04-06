@@ -4,6 +4,13 @@ export interface UserDto {
     email: string;
     senha?: string;
     role?: string;
+    cadastradoEm?: string;
+}
+
+export interface UserEditarDto {
+    nome: string;
+    email: string;
+    role: number;
 }
 
 export interface tokenDecoded {
