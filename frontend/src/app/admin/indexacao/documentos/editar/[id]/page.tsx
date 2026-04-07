@@ -17,7 +17,7 @@ type Params = Promise<{ id: string }>;
 const AtualizarDoc = ({ params }: { params: Params }) => {
 
     const resolvida = use(params);
-    const idDoUsuario = resolvida.id;
+    const idDoDocumento = resolvida.id;
     const { push } = useRouter();
 
     const { showMessage } = useSnackbar();
@@ -40,7 +40,7 @@ const AtualizarDoc = ({ params }: { params: Params }) => {
     };
 
     useEffect(() => {
-        buscarDoc(idDoUsuario);
+        buscarDoc(idDoDocumento);
     }, [])
 
 
@@ -90,13 +90,14 @@ const AtualizarDoc = ({ params }: { params: Params }) => {
         <h1 className="text-3xl mb-2">Editar documento</h1>
         <hr className="text-[#685A22] mb-2" />
         <p className="text-[#898989] text-l mb-4">{doc?.titulo + " · Indexado em " + formatarDataHora(doc?.criadoEm!) + " · Versão atual: " + doc?.numeroVersao}</p>
-        <div className='w-full flex gap-5'>
+        <div className='grid grid-cols-1 md:grid-cols-2 gap-8 w-full items-start'>
             <div className='w-full flex flex-col gap-2'>
                 <Input
                     id='titulo'
                     onChange={(e) => setTitulo(e.target.value)}
                     type='text'
                     label='Título'
+                    className='w-full'
                     value={titulo}
                     maxCaracteres={80}
                 />

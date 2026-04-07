@@ -405,12 +405,12 @@ const Documentos = () => {
                                 {/* Botão Atualizar */}
                                 <button className="text-[#3f3f3f] hover:text-blue-700 transition-colors" title="Atualizar"
 
-                                    onClick={() => push(`/admin/indexacao/documentos/${doc.id}`)}>
+                                    onClick={() => push(`/admin/indexacao/documentos/editar/${doc.id}`)}>
                                     <PencilSquareIcon className="w-6 h-6 cursor-pointer"></PencilSquareIcon>
                                 </button>
                                 {/* Botão historico */}
                                 <button className="text-[#3f3f3f] hover:text-blue-700 transition-colors" title="Histórico"
-                                    onClick={() => showMessage({ message: "Não implementado", type: "warning" })}>
+                                    onClick={() => push(`/admin/indexacao/documentos/historico/${doc.id}`)}>
                                     <DocumentDuplicateIcon className="w-6 h-6 cursor-pointer"></DocumentDuplicateIcon>
                                 </button>
 

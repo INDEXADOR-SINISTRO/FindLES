@@ -28,6 +28,7 @@ public interface DocumentoRepository extends JpaRepository<Documento, Integer> {
             Pageable pageable);
 
 
+
     @Transactional
     @Modifying
     @Query("UPDATE Documento d SET d.statusDoc.id = 2 WHERE d.id = :id")
@@ -39,6 +40,9 @@ public interface DocumentoRepository extends JpaRepository<Documento, Integer> {
     void deletarIndicesPorDocumento(@Param("id") Integer id);
 
     List<Documento> findByStatusDocId(Integer idStatus);
+
+    @Query("SELECT d FROM Documento d WHERE d.id = :id OR d.documentoOrigem.id = :id ORDER BY d.id desc")
+    List<Documento> historicoDocumento(@Param("id") Integer id);
 
     boolean existsByHashConteudo(String hashConteudo);
 

@@ -13,7 +13,8 @@ public record DadosListagemDocumentoDTO(
         LocalDateTime criadoEm,
         LocalDateTime atualizadoEm,
         String numeroVersao,
-        String caminhoArquivo
+        String caminhoArquivo,
+        Integer idOrigem
 ) {
     // Construtor que converte a Entidade Documento para este DTO
     public DadosListagemDocumentoDTO(Documento documento) {
@@ -27,7 +28,9 @@ public record DadosListagemDocumentoDTO(
                 documento.getCriadoEm(),
                 documento.getAtualizadoEm(),
                 documento.getNumeroVersao(),
-                documento.getCaminhoArquivo()
+                documento.getCaminhoArquivo(),
+                documento.getDocumentoOrigem() != null ? documento.getDocumentoOrigem().getId() : null
+
         );
     }
 }

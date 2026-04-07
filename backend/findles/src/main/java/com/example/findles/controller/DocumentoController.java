@@ -4,6 +4,7 @@ import com.example.findles.service.AuditoriaService;
 import com.example.findles.service.DocumentoService;
 import com.example.findles.domain.entity.Usuario;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -111,6 +112,12 @@ public class DocumentoController {
         return ResponseEntity.ok(pagina);
     }
 
+    @GetMapping(value="/historico/{id}")
+    public ResponseEntity<List<DadosListagemDocumentoDTO>> historicoDocumento(@PathVariable Integer id) {
+        var historico = documentoService.encontrarHistorico(id);
+        return ResponseEntity.ok(historico);
+    }
+
     @GetMapping("/abrir/{id}")
     public ResponseEntity<Resource> abrirPdf(@PathVariable Integer id) {
 
@@ -189,6 +196,26 @@ public class DocumentoController {
             logger.error("Erro ao buscar o arquivo {}: {}",id, e.getMessage());
             return ResponseEntity.internalServerError()
                     .body("Erro ao buscar o arquivo " + id + ": " + e.getMessage());
+        }
+    }
+
+
+    @PostMapping("/restaurar/{id}")
+    public ResponseEntity<?> restaurarDocumento(
+            @PathVariable Integer id,
+            @RequestBody @Valid Integer idDocAtual,
+            @AuthenticationPrincipal Usuario usuarioLogado) {
+        try {
+            logger.info("Restaurando documento com id: {}",id );
+            auditoriaService.criarHistorico(usuarioLogado,"Restaurar documento com id " + id,"");
+            var idNovoDoc = documentoService.restaurarDoc(id,idDocAtual);
+            return ResponseEntity.ok(idNovoDoc);
+
+        } catch (Exception e) {
+
+            logger.error("Erro ao restaturar arquivo {}: {}",id, e.getMessage());
+            auditoriaService.criarHistorico(usuarioLogado,"Indexar arquivos pendentes",e.getMessage());
+            return ResponseEntity.internalServerError().body("Erro ao restaurar documento: " + e.getMessage());
         }
     }
 }

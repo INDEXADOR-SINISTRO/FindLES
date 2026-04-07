@@ -51,4 +51,5 @@ export interface listagemDocumentoDto {
     atualizadoEm: string;
     criadoEm: string;
     numeroVersao: string;
+    idOrigem?: number;
 }

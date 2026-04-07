@@ -409,7 +409,6 @@ public class DocumentoService {
                 .orElseThrow(() -> new RuntimeException("Status INATIVO não encontrado no banco."));
 
         docAtual.setStatusDoc(statusInativo);
-        docAtual.setAtualizadoEm(LocalDateTime.now());
         repository.save(docAtual); // Atualiza o antigo no banco
         // ----------------------------------------------------
 
@@ -426,7 +425,7 @@ public class DocumentoService {
         }else{
             docNovo.setDocumentoOrigem(docAtual); // Define o pai!
         }
-        
+
         docNovo.setNumeroVersao(novaVersao);
         docNovo.setInseridoPor(docAtual.getInseridoPor()); // Ou pode pegar o usuário logado no contexto
         StatusDocumento statusPendente = statusRepository.findById(3) //  ID 3 como PENDENTE
@@ -470,5 +469,57 @@ public class DocumentoService {
             return versaoAtual + "-nova-versao";
         }
     }
+
+    public List<DadosListagemDocumentoDTO> encontrarHistorico(Integer id){
+
+        List<Documento> docs = repository.historicoDocumento(id);
+
+        // Correção aqui: usando ArrayList e o operador diamante <>
+        List<DadosListagemDocumentoDTO> historico = new ArrayList<>();
+
+        docs.forEach(doc -> {
+            historico.add(new DadosListagemDocumentoDTO(doc));
+        });
+
+        return historico;
+    }
+
+    @Transactional
+    public Integer restaurarDoc(Integer id, Integer idDocAtual){
+
+        Documento docRestaurar = repository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Documento não encontrado com o ID: " + id));
+
+        StatusDocumento statusPendente = statusRepository.findById(3) //  ID 3 como PENDENTE
+                .orElseThrow(() -> new RuntimeException("Status PENDENTE não encontrado no banco."));
+
+        Documento docAtual = repository.findById(idDocAtual)
+                .orElseThrow(() -> new IllegalArgumentException("Documento não encontrado com o ID: " + idDocAtual));
+
+
+        StatusDocumento statusInativo = statusRepository.findById(2) //  ID 3 como PENDENTE
+                .orElseThrow(() -> new RuntimeException("Status PENDENTE não encontrado no banco."));
+
+        docAtual.setStatusDoc(statusInativo);
+
+        repository.save(docAtual);
+
+        Documento novoDoc = new Documento();
+        novoDoc.setDocumentoOrigem(docRestaurar.getDocumentoOrigem() != null ? docRestaurar.getDocumentoOrigem() : docRestaurar );
+        novoDoc.setCategoria(docRestaurar.getCategoria());
+        novoDoc.setStatusDoc(statusPendente);
+        novoDoc.setCriadoEm(LocalDateTime.now());
+        novoDoc.setAtualizadoEm(LocalDateTime.now());
+        novoDoc.setCaminhoArquivo(docRestaurar.getCaminhoArquivo());
+        novoDoc.setTitulo(docRestaurar.getTitulo());
+        novoDoc.setHashConteudo(docRestaurar.getHashConteudo());
+        novoDoc.setInseridoPor(docRestaurar.getInseridoPor());
+        novoDoc.setNumeroVersao(incrementarVersao(docAtual.getNumeroVersao()));
+
+
+
+        return repository.save(novoDoc).getId();
+    }
+
 
 }
