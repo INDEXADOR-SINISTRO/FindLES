@@ -33,3 +33,7 @@ build/
 .vscode/
 
 uploads/documentos
+
+.env
+
+

@@ -27,6 +27,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import org.springframework.util.StopWatch;
+
 import java.time.LocalDate;
 import java.util.List;
 
@@ -49,14 +51,19 @@ public class DocumentoController {
             @RequestParam(value = "idCategoria", required = false) Integer idCategoria,
             @AuthenticationPrincipal Usuario usuarioLogado
     ) {
+        StopWatch relogio = new StopWatch();
+        relogio.start();
         try {
+
             logger.info("Anexando documentos: {} documentos", arquivos.size());
             documentoService.salvarDocumentos(arquivos, idCategoria, usuarioLogado);
-            auditoriaService.criarHistorico(usuarioLogado,"Fazer Upload de arquivos no sistema","");
+            relogio.stop();
+            auditoriaService.criarHistorico(usuarioLogado,"Fazer Upload de arquivos no sistema","",relogio.getTotalTimeMillis());
             return ResponseEntity.status(201).body("Documentos salvos com sucesso!");
         } catch (Exception e) {
             logger.error("Erro ao indexar arquivos: {}", e.getMessage());
-            auditoriaService.criarHistorico(usuarioLogado,"Fazer Upload de arquivos no sistema",e.getMessage());
+            relogio.stop();
+            auditoriaService.criarHistorico(usuarioLogado,"Fazer Upload de arquivos no sistema",e.getMessage(),relogio.getTotalTimeMillis());
             return ResponseEntity.badRequest().body(e.getMessage());
         }
 
@@ -69,18 +76,20 @@ public class DocumentoController {
             @RequestParam(value = "idCategoria", required = false) Integer idCategoria,
             @RequestParam(value = "arquivo", required = false) MultipartFile arquivo,
             @AuthenticationPrincipal Usuario usuarioLogado) {
-
+        StopWatch relogio = new StopWatch();
+        relogio.start();
         try {
             // Chama o serviço passando todos os parâmetros. O arquivo pode ser nulo.
             logger.info("Editar arquivo {}:", id);
             var editouOuCriouVersao = documentoService.atualizarOuCriarVersao(id, titulo, idCategoria, arquivo);
+            relogio.stop();
             if(editouOuCriouVersao.getId().equals(id)){
                 logger.info("Arquivo editado com sucesso {}: ", id);
-                auditoriaService.criarHistorico(usuarioLogado,"Editar arquivo de id " + id,"");
+                auditoriaService.criarHistorico(usuarioLogado,"Editar arquivo de id " + id,"",relogio.getTotalTimeMillis());
 
             }else{
                 logger.info("Versão {} do arquivo {} foi criada ",editouOuCriouVersao.getNumeroVersao(), id);
-                auditoriaService.criarHistorico(usuarioLogado,"Criou a versão " + editouOuCriouVersao.getNumeroVersao() + " do arquivo " + id ,"");
+                auditoriaService.criarHistorico(usuarioLogado,"Criou a versão " + editouOuCriouVersao.getNumeroVersao() + " do arquivo " + id ,"",relogio.getTotalTimeMillis());
 
             }
 
@@ -89,11 +98,13 @@ public class DocumentoController {
 
         } catch (EntityNotFoundException e) {
             logger.error("Erro ao editar arquivo: {}", e.getMessage());
-            auditoriaService.criarHistorico(usuarioLogado,"Editar arquivo de id " + id,e.getMessage());
+            relogio.stop();
+            auditoriaService.criarHistorico(usuarioLogado,"Editar arquivo de id " + id,e.getMessage(),relogio.getTotalTimeMillis());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
             logger.error("Erro ao editar arquivo: {}", e.getMessage());
-            auditoriaService.criarHistorico(usuarioLogado,"Editar arquivo de id " + id,e.getMessage());
+            relogio.stop();
+            auditoriaService.criarHistorico(usuarioLogado,"Editar arquivo de id " + id,e.getMessage(),relogio.getTotalTimeMillis());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Erro ao processar documento: " + e.getMessage());
         }
@@ -135,6 +146,8 @@ public class DocumentoController {
     @PostMapping("/indexar-pendentes")
     public ResponseEntity<String> iniciarIndexacaoEmLote(
             @AuthenticationPrincipal Usuario usuarioLogado) {
+        StopWatch relogio = new StopWatch();
+        relogio.start();
         try {
             // O Service faz todo o trabalho pesado (Tika + Update no Postgres) e devolve o total de sucessos
             int quantidadeIndexada = documentoService.indexarDocumentosPendentes();
@@ -143,14 +156,15 @@ public class DocumentoController {
             if (quantidadeIndexada == 0) {
                 return ResponseEntity.ok("Não tinham documentos para indexar.");
             }
-
+            relogio.stop();
             // Se processou 1 ou mais, devolve a mensagem de sucesso com a quantidade
-            auditoriaService.criarHistorico(usuarioLogado,"Indexar arquivos pendentes: " +  quantidadeIndexada + " documento(s)","");
+            auditoriaService.criarHistorico(usuarioLogado,"Indexar arquivos pendentes: " +  quantidadeIndexada + " documento(s)","",relogio.getTotalTimeMillis());
             return ResponseEntity.ok(quantidadeIndexada + " documento(s) indexado(s) com sucesso e atualizado(s) para ATIVO!");
 
         } catch (Exception e) {
+            relogio.stop();
             // Para capturar qualquer erro fatal que escape do loop de processamento
-            auditoriaService.criarHistorico(usuarioLogado,"Indexar arquivos pendentes",e.getMessage());
+            auditoriaService.criarHistorico(usuarioLogado,"Indexar arquivos pendentes",e.getMessage(),relogio.getTotalTimeMillis());
             return ResponseEntity.internalServerError().body("Erro interno na rotina de indexação: " + e.getMessage());
         }
     }
@@ -159,14 +173,18 @@ public class DocumentoController {
     public ResponseEntity<String> calcularTfIdf(
             @AuthenticationPrincipal Usuario usuarioLogado
     ) {
+        StopWatch relogio = new StopWatch();
+        relogio.start();
         try {
             // É recomendado rodar isso de forma assíncrona (@Async) em produção,
             // pois pode demorar vários minutos dependendo do tamanho da base.
             documentoService.calcularTfIdfDeTodaABase();
-            auditoriaService.criarHistorico(usuarioLogado,"Calcular tf-idf de documentos ativos" ,"");
+            relogio.stop();
+            auditoriaService.criarHistorico(usuarioLogado,"Calcular tf-idf de documentos ativos" ,"",relogio.getTotalTimeMillis());
             return ResponseEntity.ok("Processo de cálculo de TF-IDF finalizado com sucesso.");
-        } catch (Exception e) {
-            auditoriaService.criarHistorico(usuarioLogado,"Calcular tf-idf de documentos ativos",e.getMessage());
+        } catch (Exception e){
+            relogio.stop();
+            auditoriaService.criarHistorico(usuarioLogado,"Calcular tf-idf de documentos ativos",e.getMessage(),relogio.getTotalTimeMillis());
             return ResponseEntity.internalServerError().body("Erro ao calcular TF-IDF: " + e.getMessage());
         }
     }
@@ -175,13 +193,17 @@ public class DocumentoController {
     public ResponseEntity<String> delete(
             @PathVariable Integer id,
             @AuthenticationPrincipal Usuario usuarioLogado) {
+        StopWatch relogio = new StopWatch();
+        relogio.start();
 
         try {
             documentoService.removerLogicamente(id);
-            auditoriaService.criarHistorico(usuarioLogado,"Remover arquivo com id " + id,"");
+            relogio.stop();
+            auditoriaService.criarHistorico(usuarioLogado,"Remover arquivo com id " + id,"", relogio.getTotalTimeMillis());
             return ResponseEntity.ok("Arquivo com id " + id + " removido com sucesso");
         } catch (Exception e) {
-            auditoriaService.criarHistorico(usuarioLogado,"Remover arquivo com id " + id, e.getMessage());
+            relogio.stop();
+            auditoriaService.criarHistorico(usuarioLogado,"Remover arquivo com id " + id, e.getMessage(), relogio.getTotalTimeMillis());
             return ResponseEntity.internalServerError().body("Erro ao remover arquivo " + id + ": " + e.getMessage());
         }
     }
@@ -205,16 +227,20 @@ public class DocumentoController {
             @PathVariable Integer id,
             @RequestBody @Valid Integer idDocAtual,
             @AuthenticationPrincipal Usuario usuarioLogado) {
+        StopWatch relogio = new StopWatch();
+        relogio.start();
         try {
             logger.info("Restaurando documento com id: {}",id );
-            auditoriaService.criarHistorico(usuarioLogado,"Restaurar documento com id " + id,"");
             var idNovoDoc = documentoService.restaurarDoc(id,idDocAtual);
+            relogio.stop();
+            auditoriaService.criarHistorico(usuarioLogado,"Restaurar documento com id " + id,"", relogio.getTotalTimeMillis());
             return ResponseEntity.ok(idNovoDoc);
 
         } catch (Exception e) {
 
             logger.error("Erro ao restaturar arquivo {}: {}",id, e.getMessage());
-            auditoriaService.criarHistorico(usuarioLogado,"Indexar arquivos pendentes",e.getMessage());
+            relogio.stop();
+            auditoriaService.criarHistorico(usuarioLogado,"Indexar arquivos pendentes",e.getMessage(),relogio.getTotalTimeMillis());
             return ResponseEntity.internalServerError().body("Erro ao restaurar documento: " + e.getMessage());
         }
     }

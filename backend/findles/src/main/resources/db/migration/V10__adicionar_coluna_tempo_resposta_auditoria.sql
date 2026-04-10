@@ -1,0 +1,1 @@
+ALTER TABLE auditoria ADD COLUMN tempo_resposta BIGINT;

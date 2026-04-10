@@ -95,7 +95,7 @@ const HistoricoDocumento = ({ params }: { params: Params }) => {
             </div>
             <h1 className="text-3xl mb-2">Histórico de versões</h1>
             <hr className="text-[#685A22] mb-2" />
-            <p className="text-[#898989] text-l mb-4">{docs.length} versões registradas · Versão atual: {doc?.numeroVersao}</p>
+            <p className="text-[#898989] text-l mb-4">versões registradas: {docs.length} · Versão atual: {doc?.numeroVersao}</p>
 
 
             {/* Lista de Versões */}

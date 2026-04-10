@@ -9,7 +9,8 @@ public record DadosAuditoriaDTO(
         LocalDateTime data,
         String nomeUsuario,
         String acao,
-        String logErro
+        String logErro,
+        Long tempoResposta
 ) {
     public DadosAuditoriaDTO(Auditoria auditoria) {
         this(
@@ -17,8 +18,8 @@ public record DadosAuditoriaDTO(
                 auditoria.getData(),
                 auditoria.getAcionadoPor().getEmail(),
                 auditoria.getAcao(),
-                auditoria.getLogErro() != null ? auditoria.getLogErro() : ""
-
+                auditoria.getLogErro() != null ? auditoria.getLogErro() : "",
+                auditoria.getTempoResposta()
         );
     }
 

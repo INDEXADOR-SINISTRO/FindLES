@@ -30,8 +30,8 @@ public class AuditoriaService {
         return auditoriasPaginadas.map(DadosAuditoriaDTO::new);
     }
 
-    public void criarHistorico(Usuario usuario, String acao, String erro) {
-        Auditoria aud = new Auditoria(usuario,acao, LocalDateTime.now(),erro);
+    public void criarHistorico(Usuario usuario, String acao, String erro, long tempoResposta) {
+        Auditoria aud = new Auditoria(usuario,acao, LocalDateTime.now(),erro,tempoResposta);
         repository.save(aud);
 
     }

@@ -44,7 +44,8 @@ public interface DocumentoRepository extends JpaRepository<Documento, Integer> {
     @Query("SELECT d FROM Documento d WHERE d.id = :id OR d.documentoOrigem.id = :id ORDER BY d.id desc")
     List<Documento> historicoDocumento(@Param("id") Integer id);
 
-    boolean existsByHashConteudo(String hashConteudo);
+    @Query("SELECT COUNT(d) > 0 FROM Documento d WHERE d.hashConteudo = :hash AND d.statusDoc.id IN (1, 3)")
+    boolean existsByHashConteudoAtivoOuPendente(@Param("hash") String hash);
 
     long countByStatusDocId(Integer statusId);
 }

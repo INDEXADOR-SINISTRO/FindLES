@@ -32,10 +32,15 @@ public class Auditoria {
     @Column(name = "LOG_ERRO", nullable = true, columnDefinition = "TEXT")
     private String logErro;
 
-    public Auditoria(Usuario acionadoPor, String acao, LocalDateTime data){
+    @Column(name = "TEMPO_RESPOSTA", nullable = true, columnDefinition = "TEXT")
+    private Long tempoResposta;
+
+    public Auditoria(Usuario acionadoPor, String acao, LocalDateTime data,String logErro,Long tempoResposta){
         this.acionadoPor = acionadoPor;
         this.acao = acao;
         this.data = data;
+        this.logErro = logErro;
+        this.tempoResposta = tempoResposta;
     }
 
     public Auditoria(Usuario acionadoPor, String acao, LocalDateTime data, String logErro){

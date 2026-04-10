@@ -3,5 +3,6 @@ export interface AuditoriaDto {
     nomeUsuario: string;
     data: string;
     acao: string;
-    logErro?: string;
+    logErro: string;
+    tempoResposta: number;
 }

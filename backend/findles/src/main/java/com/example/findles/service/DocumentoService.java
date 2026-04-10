@@ -96,7 +96,7 @@ public class DocumentoService {
                 String hashConteudo = calcularHash(arquivo.getBytes());
 
                 // 4. A NOVA VALIDAÇÃO: Consulta o banco de dados
-                if (repository.existsByHashConteudo(hashConteudo)) {
+                if (repository.existsByHashConteudoAtivoOuPendente(hashConteudo)) {
                     throw new IllegalArgumentException("O arquivo '" + nomeOriginal + "' já foi inserido anteriormente no sistema (conteúdo duplicado).");
                 }
 
@@ -397,7 +397,7 @@ public class DocumentoService {
         String novoCaminho = caminhoFisico.toString();
         String novoHash = calcularHash(arquivo.getBytes());
 
-        if (repository.existsByHashConteudo(novoHash)) {
+        if (repository.existsByHashConteudoAtivoOuPendente(novoHash)) {
             throw new IllegalArgumentException("O arquivo '" + novoTitulo + "' já foi inserido anteriormente no sistema (conteúdo duplicado).");
         }
 

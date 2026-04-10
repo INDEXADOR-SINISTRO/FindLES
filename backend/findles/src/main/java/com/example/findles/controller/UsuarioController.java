@@ -15,6 +15,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StopWatch;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -68,18 +69,21 @@ public class UsuarioController {
             @PathVariable Integer id,
             @RequestBody @Valid DadosEditarUsuarioDTO dados,
             @AuthenticationPrincipal Usuario usuarioLogado) {
-
+        StopWatch relogio = new StopWatch();
+        relogio.start();
         try {
             Integer perfilUsuarioASerEditado = usuarioService.getUsuario(id).getPerfil().getId();
             Usuario usuarioAtualizado = usuarioService.atualizarUsuario(id, dados);
 
+            relogio.stop();
+
             if(dados.role().equals(perfilUsuarioASerEditado)){
-                auditoriaService.criarHistorico(usuarioLogado,"Editar usuário com id " + id,"");
+                auditoriaService.criarHistorico(usuarioLogado,"Editar usuário com id " + id,"", relogio.getTotalTimeMillis());
             }else{
                 if(dados.role().equals(1)){
-                    auditoriaService.criarHistorico(usuarioLogado,"Tornou " + usuarioAtualizado.getEmail() + " um usuário","");
+                    auditoriaService.criarHistorico(usuarioLogado,"Tornou " + usuarioAtualizado.getEmail() + " um usuário","", relogio.getTotalTimeMillis());
                 }else{
-                    auditoriaService.criarHistorico(usuarioLogado,"Tornou " + usuarioAtualizado.getEmail() + " um administrador","");
+                    auditoriaService.criarHistorico(usuarioLogado,"Tornou " + usuarioAtualizado.getEmail() + " um administrador","", relogio.getTotalTimeMillis());
                 }
             }
 
@@ -88,7 +92,8 @@ public class UsuarioController {
 
         } catch (Exception e) {
             logger.error("Erro ao Editar usuário: {}", e.getMessage());
-            auditoriaService.criarHistorico(usuarioLogado,"Editar usuário com id " + id,e.getMessage());
+            relogio.stop();
+            auditoriaService.criarHistorico(usuarioLogado,"Editar usuário com id " + id,e.getMessage(), relogio.getTotalTimeMillis());
             return ResponseEntity.badRequest().build(); // Retorna 400 para outros erros
         }
     }

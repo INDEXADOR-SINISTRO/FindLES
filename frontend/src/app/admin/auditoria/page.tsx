@@ -154,6 +154,9 @@ const Auditoria = () => {
                   <th className="p-4 border-r border-[#c5c3b9] text-[#4a4a4a] font-semibold w-1/5">
                     Data / Hora
                   </th>
+                  <th className="p-4 border-r border-[#c5c3b9] text-[#4a4a4a] font-semibold w-1/8">
+                    Tempo em ms
+                  </th>
                   <th className="p-4 border-r border-[#c5c3b9] text-[#4a4a4a] font-semibold w-2/5">
                     Erro
                   </th>
@@ -181,6 +184,9 @@ const Auditoria = () => {
 
                     <td className="p-4 border-r border-[#c5c3b9] text-[#777777] text-sm">
                       {formatarDataHora(aud.data)}
+                    </td>
+                    <td className="p-4 border-r border-[#c5c3b9] text-[#777777] text-sm">
+                      {aud.tempoResposta}
                     </td>
                     <td className="p-4 border-r border-[#c5c3b9] text-[#f54b4b] text-xs">
                       {aud.logErro}
