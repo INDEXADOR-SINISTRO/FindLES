@@ -527,6 +527,7 @@ const Documentos = () => {
         >
             <div className='text-[#898989] text-lg'>
                 Ao confirmar todos os documentos com status "Pendente" serão indexados
+
             </div>
 
         </Dialog>
@@ -541,7 +542,7 @@ const Documentos = () => {
             <div className='text-[#898989] text-lg'>
                 Ao confirmar o calculo de TF-IDF será processado com base em todos os documentos com status "ativo"
             </div>
-
+            
         </Dialog>
     </div>
     );

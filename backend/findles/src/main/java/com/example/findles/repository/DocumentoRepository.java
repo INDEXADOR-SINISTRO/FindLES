@@ -1,6 +1,7 @@
 package com.example.findles.repository;
 
 import com.example.findles.domain.entity.Documento;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.domain.Page;
@@ -12,6 +13,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+@Repository
 public interface DocumentoRepository extends JpaRepository<Documento, Integer> {
 
     @Query("SELECT d FROM Documento d WHERE " +
@@ -26,6 +28,19 @@ public interface DocumentoRepository extends JpaRepository<Documento, Integer> {
             @Param("dataDe") LocalDateTime dataDe,
             @Param("dataAte") LocalDateTime dataAte,
             Pageable pageable);
+
+    @Query("SELECT d FROM Documento d WHERE " +
+            "d.statusDoc.id <> 2 AND " +
+            "(:idCategoria IS NULL OR d.categoria.id = :idCategoria) AND " +
+            "(cast(:dataDe as timestamp) IS NULL OR d.criadoEm >= :dataDe) AND " +
+            "(cast(:dataAte as timestamp) IS NULL OR d.criadoEm <= :dataAte) AND " +
+            "EXISTS (SELECT 1 FROM IndiceInvertido i WHERE i.documento = d AND i.termo.termoNormalizado IN :tokens)")
+    List<Documento> buscarComPesquisa(
+            @Param("tokens") List<String> tokens,
+            @Param("idCategoria") Integer idCategoria,
+            @Param("dataDe") LocalDateTime dataDe,
+            @Param("dataAte") LocalDateTime dataAte
+    );
 
 
 

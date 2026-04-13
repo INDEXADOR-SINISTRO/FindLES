@@ -83,6 +83,9 @@ const Usuarios = () => {
 
   const topoRef = useRef<HTMLDivElement>(null);
 
+
+  const [submitWasClicked, setSubmitWasClicked] = useState<boolean>(false)
+
   const rolarParaOTopo = () => {
     if (topoRef.current) {
       topoRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -122,8 +125,24 @@ const Usuarios = () => {
     }
   };
 
+  const onCheckFields = () => {
+    if (nome === "" || email === "") {
+      return true;
+    }
+    return false;
+  }
+
+
 
   const handleEditar = async () => {
+    setSubmitWasClicked(true);
+    const invalidFields = onCheckFields()
+    if (invalidFields) {
+      showMessage({ message: "Preencha os campos obrigatórios", type: "error" })
+      return;
+    }
+
+
     const data: UserEditarDto = {
       nome: nome,
       email: email,
@@ -131,12 +150,12 @@ const Usuarios = () => {
     }
     try {
       setIsLoading(true);
-      await userService.update(user?.id!,data)
+      await userService.update(user?.id!, data)
       showMessage({ message: "Usuário editado com sucesso", type: "success" });
-      
+
     } catch (error) {
       showMessage({ message: "Não foi possível editar usuário", type: "error" });
-    }finally{
+    } finally {
       setIsLoading(false);
       setIsOpenEditar(false);
     }
@@ -368,6 +387,7 @@ const Usuarios = () => {
               label="Nome"
               value={nome}
               className="w-full"
+              showError={nome === "" && submitWasClicked}
 
             />
             <Input
@@ -377,6 +397,7 @@ const Usuarios = () => {
               label="E-mail"
               value={email}
               className="w-full"
+              showError={email === "" && submitWasClicked}
             />
           </div>
 

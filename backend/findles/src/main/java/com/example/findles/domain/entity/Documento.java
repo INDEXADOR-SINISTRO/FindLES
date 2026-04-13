@@ -68,6 +68,9 @@ public class Documento {
     @Column(name = "TOTAL_TERMOS")
     private Integer totalTermos;
 
+    @Column(name = "MAGNITUDE_DOCUMENTO")
+    private Double magnitudeDocumento;
+
 
     public void adicionarIndice(Termo termo, Integer frequencia) {
         IndiceInvertido indice = new IndiceInvertido(this, termo, frequencia);

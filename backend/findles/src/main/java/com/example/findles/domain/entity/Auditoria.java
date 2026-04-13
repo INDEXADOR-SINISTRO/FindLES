@@ -32,7 +32,7 @@ public class Auditoria {
     @Column(name = "LOG_ERRO", nullable = true, columnDefinition = "TEXT")
     private String logErro;
 
-    @Column(name = "TEMPO_RESPOSTA", nullable = true, columnDefinition = "TEXT")
+    @Column(name = "TEMPO_RESPOSTA", nullable = true)
     private Long tempoResposta;
 
     public Auditoria(Usuario acionadoPor, String acao, LocalDateTime data,String logErro,Long tempoResposta){

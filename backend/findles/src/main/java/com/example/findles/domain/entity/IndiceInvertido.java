@@ -29,8 +29,7 @@ public class IndiceInvertido {
     private Integer frequencia;
 
     @Column(name = "TF_IDF")
-    private Double tfIdf; // Deixamos como Double/Float, já que permitimos nulo na migration
-
+    private Double tfIdf = 0.0;
 
     public IndiceInvertido(Documento documento, Termo termo, Integer frequencia) {
         this.documento = documento;

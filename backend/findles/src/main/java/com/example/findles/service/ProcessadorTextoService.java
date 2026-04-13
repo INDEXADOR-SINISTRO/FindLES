@@ -1,8 +1,7 @@
 package com.example.findles.service;
 
-import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.TokenStream;
-import org.apache.lucene.analysis.pt.PortugueseAnalyzer;
+import org.apache.lucene.analysis.*;
+import org.apache.lucene.analysis.br.BrazilianAnalyzer;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.springframework.stereotype.Service;
 
@@ -18,8 +17,8 @@ public class ProcessadorTextoService {
             return "";
         }
 
-        // Instancia o analisador focado em Português
-        Analyzer analyzer = new PortugueseAnalyzer();
+        // Instancia o analisador focado em Português-Brasileiro
+        Analyzer analyzer = new BrazilianAnalyzer();
         List<String> tokensProcessados = new ArrayList<>();
 
         // O TokenStream é a esteira de montagem: ele pega o texto e passa pelos 4 passos que você pediu

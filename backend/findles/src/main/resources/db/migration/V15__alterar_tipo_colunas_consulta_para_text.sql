@@ -1,0 +1,3 @@
+ALTER TABLE consulta ALTER COLUMN erro TYPE TEXT;
+
+ALTER TABLE consulta ALTER COLUMN string_busca TYPE TEXT;

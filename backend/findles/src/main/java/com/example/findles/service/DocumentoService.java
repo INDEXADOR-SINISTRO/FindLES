@@ -193,135 +193,161 @@ public class DocumentoService {
 
     @Transactional
     public int indexarDocumentosPendentes() {
-        // 1. Busca todos os documentos com status PENDENTE (ID 3)
         List<Documento> documentosPendentes = repository.findByStatusDocId(3);
+        if (documentosPendentes.isEmpty()) return 0;
 
-        // Se a lista vier vazia, já encerramos por aqui
-        if (documentosPendentes.isEmpty()) {
-            return 0;
-        }
-
-        // 2. Busca o status ATIVO (ID 1) apenas uma vez para economizar idas ao banco
         StatusDocumento statusAtivo = statusRepository.findById(1)
-                .orElseThrow(() -> new IllegalStateException("Status ATIVO não configurado no banco."));
+                .orElseThrow(() -> new IllegalStateException("Status ATIVO não configurado."));
 
-        int indexadosComSucesso = 0;
+        // Estruturas auxiliares para guardarmos tudo na memória antes de ir ao banco
+        Map<Documento, Map<String, Integer>> frequenciasPorDoc = new HashMap<>();
+        Set<String> dicionarioDoLote = new HashSet<>();
 
-        // 3. Inicia a fila de processamento
+        // ========================================================================
+        // FASE 1: Extrair e mastigar textos de todos os PDFs (Nenhuma ida ao banco!)
+        // ========================================================================
         for (Documento documento : documentosPendentes) {
             try {
-                logger.info("Iniciando extração do documento ID: {}", documento.getId());
-
-                // 1. Extração e Processamento
+                logger.info("Extraindo texto do documento ID: {}", documento.getId());
                 String textoCru = extratorService.extrairTextoDoPdf(documento.getCaminhoArquivo());
                 String textoProcessado = processadorTextoService.processar(textoCru);
 
-                // 2. A MÁGICA DA FREQUÊNCIA: Transforma o texto em um Mapa (Ex: "capacitaca" -> 5)
-                Map<String, Long> mapaFrequencia = Arrays.stream(textoProcessado.split(" "))
+                Map<String, Integer> mapaFrequencia = Arrays.stream(textoProcessado.split(" "))
                         .filter(token -> !token.trim().isEmpty())
-                        .collect(Collectors.groupingBy(
-                                Function.identity(), // A própria palavra é a chave
-                                Collectors.counting() // Conta as repetições
-                        ));
+                        .collect(Collectors.groupingBy(Function.identity(),
+                                Collectors.collectingAndThen(Collectors.counting(), Long::intValue)));
 
-                // NOVIDADE AQUI: 2.5 Calcula o total geral de termos do documento
-                // Soma todas as frequências para obter o tamanho real do documento processado
-                int totalDeTermos = mapaFrequencia.values().stream()
-                        .mapToInt(Long::intValue)
-                        .sum();
-
-                // Atribui o total ao documento
+                int totalDeTermos = mapaFrequencia.values().stream().mapToInt(Integer::intValue).sum();
                 documento.setTotalTermos(totalDeTermos);
-
-                // 3. Limpa índices antigos (caso o documento esteja sendo reindexado)
-                documento.getIndices().clear();
-
-                // 4. Salva os Termos e cria os Índices Invertidos com a Frequência
-                for (Map.Entry<String, Long> entrada : mapaFrequencia.entrySet()) {
-                    String valorToken = entrada.getKey();
-                    Integer frequencia = entrada.getValue().intValue();
-
-                    // Busca o termo ou cria um novo
-                    Termo termo = termoRepository.findByTermoNormalizado(valorToken)
-                            .orElseGet(() -> termoRepository.save(new Termo(valorToken)));
-
-                    // Adiciona a relação já com a frequência matemática salva!
-                    documento.adicionarIndice(termo, frequencia);
-                }
-
-                // 5. Salva no banco
                 documento.setTextoCru(textoCru);
-                documento.setStatusDoc(statusAtivo);
 
-                // Graças ao CascadeType.ALL, ao salvar o documento, o Spring salva os itens na INDICE_INVERTIDO
-                repository.save(documento);
-                indexadosComSucesso++;
-                logger.info("Documento ID: {} indexado com sucesso! Total de termos: {}", documento.getId(), totalDeTermos);
+                // Guardamos os cálculos na memória
+                frequenciasPorDoc.put(documento, mapaFrequencia);
+
+                // Adicionamos as palavras desse documento no nosso dicionário geral
+                dicionarioDoLote.addAll(mapaFrequencia.keySet());
 
             } catch (Exception e) {
-                // Se der erro em UM arquivo, logamos o erro, mas o laço FOR continua para o próximo!
-                logger.error("Falha ao indexar documento ID {}: {}", documento.getId(), e.getMessage());
+                logger.error("Falha ao extrair doc {}: {}", documento.getId(), e.getMessage());
             }
         }
 
-        return indexadosComSucesso;
+        if (frequenciasPorDoc.isEmpty()) return 0; // Se todos deram erro, para por aqui
+
+        // ========================================================================
+        // FASE 2: Sincronizar Termos com o Banco (1 SELECT, 1 INSERT)
+        // ========================================================================
+        logger.info("Sincronizando {} palavras únicas com o banco de dados...", dicionarioDoLote.size());
+
+        // Busca todas as palavras que já existem no banco de UMA VEZ SÓ
+        List<Termo> termosNoBanco = termoRepository.findByTermoNormalizadoIn(dicionarioDoLote);
+
+        // Coloca em um Mapa (Palavra -> Objeto Termo) para busca rápida na memória
+        Map<String, Termo> mapaTermosProntos = termosNoBanco.stream()
+                .collect(Collectors.toMap(Termo::getTermoNormalizado, t -> t));
+
+        // Descobre quais palavras são novidade e cria os objetos
+        List<Termo> termosNovos = new ArrayList<>();
+        for (String palavra : dicionarioDoLote) {
+            if (!mapaTermosProntos.containsKey(palavra)) {
+                Termo novoTermo = new Termo(palavra);
+                termosNovos.add(novoTermo);
+                mapaTermosProntos.put(palavra, novoTermo); // Já deixa no mapa para a Fase 3
+            }
+        }
+
+        // Salva todas as palavras novas de UMA SÓ VEZ
+        if (!termosNovos.isEmpty()) {
+            termoRepository.saveAll(termosNovos);
+        }
+
+        // ========================================================================
+        // FASE 3: Montar os Índices e Salvar os Documentos
+        // ========================================================================
+        for (Map.Entry<Documento, Map<String, Integer>> entry : frequenciasPorDoc.entrySet()) {
+            Documento documento = entry.getKey();
+            Map<String, Integer> palavrasDoc = entry.getValue();
+
+            documento.getIndices().clear();
+
+            for (Map.Entry<String, Integer> palavraFreq : palavrasDoc.entrySet()) {
+                // Pega o termo que agora com certeza existe no nosso mapa da memória
+                Termo termoOficial = mapaTermosProntos.get(palavraFreq.getKey());
+                documento.adicionarIndice(termoOficial, palavraFreq.getValue());
+            }
+
+            documento.setStatusDoc(statusAtivo);
+        }
+
+        // Graças ao CascadeType.ALL, esse saveAll vai fazer os UPDATEs dos documentos
+        // e os INSERTs gigantes na tabela INDICE_INVERTIDO usando Batch!
+        repository.saveAll(frequenciasPorDoc.keySet());
+
+        return frequenciasPorDoc.size();
     }
 
     @Transactional
     public void calcularTfIdfDeTodaABase() {
         try {
+            logger.info("Iniciando cálculo de TF-IDF e Magnitudes para toda a base...");
 
 
-            logger.info("Iniciando cálculo de TF-IDF para toda a base...");
+            // 1. Busca todos os documentos ativos (1 SELECT)
+            List<Documento> documentosAtivos = repository.findByStatusDocId(1);
+            long totalDocumentosAtivos = documentosAtivos.size();
 
-            // 1. Total de documentos ativos (N)
-            long totalDocumentosAtivos = repository.countByStatusDocId(1);
+            if (totalDocumentosAtivos == 0) return;
 
-            if (totalDocumentosAtivos == 0) {
-                logger.warn("Nenhum documento ativo encontrado para calcular TF-IDF.");
-                throw new IllegalArgumentException("Nenhum documento ativo encontrado para calcular TF-IDF.");
+            // 2. Busca TODOS os índices desses documentos de uma vez só! (1 SELECT)
+            // OBS: Precisamos garantir que isso faça um JOIN FETCH com Termo e Documento, veja abaixo.
+            List<IndiceInvertido> todosIndices = indiceInvertidoRepository.findByDocumentoIn(documentosAtivos);
+
+            // =================================================================
+            // FASE 1: Agrupar por TERMO na MEMÓRIA RAM (Super rápido)
+            // =================================================================
+            Map<Termo, List<IndiceInvertido>> indicesAgrupadosPorTermo = todosIndices.stream()
+                    .collect(Collectors.groupingBy(IndiceInvertido::getTermo));
+
+            for (Map.Entry<Termo, List<IndiceInvertido>> entry : indicesAgrupadosPorTermo.entrySet()) {
+                List<IndiceInvertido> indicesDesteTermo = entry.getValue();
+
+                int df = indicesDesteTermo.size();
+                double idf = Math.log10((double) totalDocumentosAtivos / df);
+
+                for (IndiceInvertido indice : indicesDesteTermo) {
+                    double tf = 1 + Math.log10(indice.getFrequencia());
+                    indice.setTfIdf(tf * idf);
+                }
             }
 
-            // 2. Busca todos os termos existentes no banco
-            // Nota: Em uma base com milhões de termos, isso precisaria ser paginado (Pageable).
-            List<Termo> todosTermos = termoRepository.findAll();
+            // =================================================================
+            // FASE 2: Agrupar por DOCUMENTO na MEMÓRIA RAM (Super rápido)
+            // =================================================================
+            Map<Documento, List<IndiceInvertido>> indicesAgrupadosPorDoc = todosIndices.stream()
+                    .collect(Collectors.groupingBy(IndiceInvertido::getDocumento));
 
-            for (Termo termo : todosTermos) {
-                // 3. Document Frequency (DF): Em quantos documentos este termo aparece?
-                List<IndiceInvertido> indicesDoTermo = indiceInvertidoRepository.findByTermo(termo);
-                int df = indicesDoTermo.size();
+            for (Documento doc : documentosAtivos) {
+                List<IndiceInvertido> indicesDoDoc = indicesAgrupadosPorDoc.getOrDefault(doc, List.of());
 
-                // Se o termo não está em nenhum documento (talvez um doc tenha sido deletado), pula
-                if (df == 0) continue;
-
-                // 4. Calcula o IDF do termo usando Logaritmo na base 10
-                double idf = Math.log10((double) totalDocumentosAtivos / df );
-
-                // 5. Calcula o TF e o TF-IDF para cada documento que possui o termo
-                for (IndiceInvertido indice : indicesDoTermo) {
-                    Documento documento = indice.getDocumento();
-
-                    int tfBruto = indice.getFrequencia();
-                    int totalTermosNoDoc = documento.getTotalTermos();
-
-                    // Evita divisão por zero caso haja alguma inconsistência no banco
-                    if (totalTermosNoDoc == 0) continue;
-
-                    // Calcula o TF (Proporção da palavra dentro do texto)
-                    double tf = (double) tfBruto / totalTermosNoDoc;
-
-                    // Calcula o Peso Final e salva na entidade
-                    double pesoTfIdf = tf * idf;
-                    indice.setTfIdf(pesoTfIdf);
+                double somaQuadrados = 0.0;
+                for (IndiceInvertido indice : indicesDoDoc) {
+                    somaQuadrados += Math.pow(indice.getTfIdf(), 2);
                 }
 
-                // 6. Salva as atualizações no banco em lote para este termo
-                indiceInvertidoRepository.saveAll(indicesDoTermo);
+                double magnitude = Math.sqrt(somaQuadrados);
+                doc.setMagnitudeDocumento(magnitude > 0 ? magnitude : 1.0);
             }
 
-            logger.info("Cálculo de TF-IDF concluído com sucesso!");
-        }catch(Exception e){
-            logger.error("Falha ao calcular peso TF-IDF: {}", e.getMessage());
+            // =================================================================
+            // FASE 3: Salvar tudo em lote (Apenas 2 comandos para o banco!)
+            // =================================================================
+            indiceInvertidoRepository.saveAll(todosIndices);
+            repository.saveAll(documentosAtivos);
+
+            logger.info("Cálculo de TF-IDF e Magnitudes concluído com sucesso!");
+
+        } catch (Exception e) {
+            logger.error("Erro no cálculo OTIMIZADO: ", e);
             throw e;
         }
     }
@@ -404,12 +430,10 @@ public class DocumentoService {
         // 2.2 Incrementa a versão (Ex: "1" vira "2", ou "1.0" vira "2.0")
         String novaVersao = incrementarVersao(docAtual.getNumeroVersao());
 
-        // Inativar o documento antigo
-        StatusDocumento statusInativo = statusRepository.findById(2) //  ID 2 como INATIVO
-                .orElseThrow(() -> new RuntimeException("Status INATIVO não encontrado no banco."));
 
-        docAtual.setStatusDoc(statusInativo);
-        repository.save(docAtual); // Atualiza o antigo no banco
+
+        repository.atualizarStatusParaRemovido(docAtual.getId());
+        repository.deletarIndicesPorDocumento(docAtual.getId());
         // ----------------------------------------------------
 
         // 2.3 Cria o NOVO documento

@@ -22,6 +22,9 @@ const AtualizarDoc = ({ params }: { params: Params }) => {
 
     const { showMessage } = useSnackbar();
 
+
+    const [submitWasClicked, setSubmitWasClicked] = useState<boolean>(false)
+
     const [doc, setDoc] = useState<listagemDocumentoDto>()
 
     const [titulo, setTitulo] = useState<string>("");
@@ -44,22 +47,38 @@ const AtualizarDoc = ({ params }: { params: Params }) => {
     }, [])
 
 
-    const [isLoading, setIsLoading] =useState<boolean>(false)
+    const [isLoading, setIsLoading] = useState<boolean>(false)
+
+
+    const onCheckFields = () => {
+        if (titulo === "") {
+            return true;
+        }
+        return false;
+    }
 
     const onSubmit = async () => {
-        
-        try {
-          setIsLoading(true);
-          await documentoService.editar(doc?.id!,arquivos,titulo, Number(categoria));
-          showMessage({ message: "Arquivo atualizado com sucesso!", type: "success" });
-          push("/admin/indexacao/documentos")
-        } catch (error) {
-          const erro = error as Error;
-          showMessage({ message: erro.message, type: "error" });
-        } finally {
-          setIsLoading(false);
+
+        const invalidFields = onCheckFields()
+        setSubmitWasClicked(true);
+        if (invalidFields) {
+            showMessage({ message: "Título não pode estar vazio", type: "error" })
+            return;
         }
-      }
+
+        try {
+
+            setIsLoading(true);
+            await documentoService.editar(doc?.id!, arquivos, titulo, Number(categoria));
+            showMessage({ message: "Arquivo atualizado com sucesso!", type: "success" });
+            push("/admin/indexacao/documentos")
+        } catch (error) {
+            const erro = error as Error;
+            showMessage({ message: erro.message, type: "error" });
+        } finally {
+            setIsLoading(false);
+        }
+    }
 
 
 
@@ -100,6 +119,7 @@ const AtualizarDoc = ({ params }: { params: Params }) => {
                     className='w-full'
                     value={titulo}
                     maxCaracteres={80}
+                    showError={titulo === "" && submitWasClicked}
                 />
                 <Select
                     id="categoria"
