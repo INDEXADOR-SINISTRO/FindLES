@@ -6,3 +6,18 @@ export interface consultaDto {
     tokens: string[];
     
 }
+
+export interface listagemConsultaDto{
+    nomeUsuario: string;
+    nomeCategoria?: string;
+    status: string;
+    tempoResposta: number;
+    dataConsulta: string;
+    dataDe?: string;
+    dataAte?: string;
+    quantidadeResultado: number;
+    avaliacao?: number;
+    stringBusca: string;
+    erro: string;
+
+}

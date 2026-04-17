@@ -51,7 +51,7 @@ const Input = ({
                   className="sr-only"
                 />
                 {/* track */}
-                <span className={`w-10 h-6  rounded-full transition-colors ${checked ? 'bg-blue-500' : 'bg-gray-200'}`}></span>
+                <span className={`w-10 h-6  rounded-full transition-colors ${checked ? 'bg-blue-500' : 'bg-[#3f3f3f]'}`}></span>
                 {/* thumb */}
                 <span className={`absolute left-0 top-0 m-0.5 w-5 h-5 bg-white rounded-full shadow transform transition-transform ${checked ? 'translate-x-4' : 'translate-x-0'}`} />
               </label>

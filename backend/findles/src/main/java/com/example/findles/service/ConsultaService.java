@@ -1,10 +1,13 @@
 package com.example.findles.service;
 
+import com.example.findles.domain.dto.response.DadosListagemConsultaDTO;
 import com.example.findles.domain.entity.*;
 import com.example.findles.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
@@ -107,5 +110,24 @@ public class ConsultaService {
         consultaRepository.save(consulta);
 
         return consulta.getId();
+    }
+
+    public Page<DadosListagemConsultaDTO> listar(Pageable paginacao, String nomeOuEmail,LocalDate dataDe, LocalDate dataAte, Boolean onlyErro) {
+
+        // Converte as datas para pegar o início do dia e o final do dia
+        LocalDateTime dataDeConvertida = (dataDe != null) ? dataDe.atStartOfDay() : null;
+        LocalDateTime dataAteConvertida = (dataAte != null) ? dataAte.atTime(LocalTime.MAX) : null;
+
+
+        if(onlyErro){
+            Page<Consulta> consultasPaginadas = consultaRepository.buscarComFiltrosDinamicosErros(nomeOuEmail, dataDeConvertida, dataAteConvertida,paginacao);
+            return consultasPaginadas.map(DadosListagemConsultaDTO::new);
+        }else{
+            Page<Consulta> consultasPaginadas = consultaRepository.buscarComFiltrosDinamicos(nomeOuEmail, dataDeConvertida, dataAteConvertida,paginacao);
+            return consultasPaginadas.map(DadosListagemConsultaDTO::new);
+        }
+
+
+
     }
 }
