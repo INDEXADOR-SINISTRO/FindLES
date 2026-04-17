@@ -1,5 +1,6 @@
 package com.example.findles.controller;
 
+import com.example.findles.domain.dto.request.ConsultaAvaliacaoDTO;
 import com.example.findles.domain.dto.request.NovaConsultaDTO;
 import com.example.findles.domain.dto.response.DadosAuditoriaDTO;
 import com.example.findles.domain.dto.response.DadosConsultaDTO;
@@ -38,6 +39,21 @@ public class ConsultaController {
 
     @Autowired
     private ProcessadorTextoService processador;
+
+    @PutMapping
+    public ResponseEntity<String> avaliarConsulta(
+            @RequestBody ConsultaAvaliacaoDTO request
+            ){
+        try{
+            logger.info("Avaliando consulta com id: {}",request.idConsulta() );
+            consultaService.avaliar(request);
+            return ResponseEntity.ok("Consulta avaliada com sucesso");
+        }catch (Exception e){
+            logger.error("Erro ao avaliar a consulta {}: {}",request.idConsulta(), e.getMessage());
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        }
+
+    }
 
 
     @PostMapping

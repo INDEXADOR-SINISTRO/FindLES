@@ -21,3 +21,8 @@ export interface listagemConsultaDto{
     erro: string;
 
 }
+
+export interface avaliarConsultaDto{
+    avaliacao: number;
+    idConsulta: number;
+}

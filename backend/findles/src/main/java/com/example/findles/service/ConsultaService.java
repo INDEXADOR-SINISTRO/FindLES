@@ -1,5 +1,6 @@
 package com.example.findles.service;
 
+import com.example.findles.domain.dto.request.ConsultaAvaliacaoDTO;
 import com.example.findles.domain.dto.response.DadosListagemConsultaDTO;
 import com.example.findles.domain.entity.*;
 import com.example.findles.repository.*;
@@ -129,5 +130,11 @@ public class ConsultaService {
 
 
 
+    }
+
+    public void avaliar(ConsultaAvaliacaoDTO request){
+        Consulta consulta = consultaRepository.findById(request.idConsulta());
+        consulta.setAvaliacao(request.avaliacao());
+        consultaRepository.save(consulta);
     }
 }

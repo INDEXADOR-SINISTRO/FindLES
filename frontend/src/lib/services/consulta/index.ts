@@ -1,4 +1,4 @@
-import { consultaDto, listagemConsultaDto } from "@/types/consulta"
+import { avaliarConsultaDto, consultaDto, listagemConsultaDto } from "@/types/consulta"
 import { apiService, PaginatedResponse } from "../apiService"
 
 
@@ -29,6 +29,10 @@ class ConsultaService {
   ): Promise<PaginatedResponse<listagemConsultaDto>> {
     return apiService.getPaginated<listagemConsultaDto>(this.baseUrl, page, filters)
   }
+
+  async avaliar(data: avaliarConsultaDto): Promise<string> {
+      return apiService.put<string, avaliarConsultaDto>(`${this.baseUrl}`, data)
+    }
 
 
 

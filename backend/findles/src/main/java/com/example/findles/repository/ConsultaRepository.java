@@ -34,4 +34,6 @@ public interface ConsultaRepository extends JpaRepository<Consulta, Integer> {
             @Param("dataDe") LocalDateTime dataDe,
             @Param("dataAte") LocalDateTime dataAte,
             Pageable pageable);
+
+    Consulta findById(Long id);
 }
