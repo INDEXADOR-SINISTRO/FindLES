@@ -1,0 +1,1 @@
+ALTER TABLE termo ALTER COLUMN termo_normalizado TYPE TEXT;

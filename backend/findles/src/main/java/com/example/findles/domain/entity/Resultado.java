@@ -25,7 +25,7 @@ public class Resultado {
     @JoinColumn(name = "ID_CONSULTA", nullable = false)
     private Consulta consulta;
 
-    @Column(name = "TRECHO_ENCONTRADO", nullable = true)
+    @Column(name = "TRECHO_ENCONTRADO", nullable = true, columnDefinition = "TEXT")
     private String trechoEncontrado;
 
     @Column(name = "RELEVANCIA_SCORE")

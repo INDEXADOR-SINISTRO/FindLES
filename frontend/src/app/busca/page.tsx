@@ -11,7 +11,7 @@ import { resultadoService } from "@/lib/services/resultado"
 import { formatarData, formatarDataHora } from "@/lib/utils/date"
 import { CategoriaList } from "@/types/documento"
 import { resultadoDto } from "@/types/resultado"
-import { DocumentTextIcon, FunnelIcon } from "@heroicons/react/24/solid"
+import { ChevronLeftIcon, ChevronRightIcon, DocumentTextIcon, FunnelIcon, HandThumbDownIcon, StarIcon } from "@heroicons/react/24/solid"
 import { useEffect, useRef, useState } from "react"
 
 
@@ -26,6 +26,15 @@ const Busca = () => {
     const [size, setSize] = useState<number>(10); // Quantos itens mostrar por vez
     const [isOpenDelete, setIsOpenDelete] = useState<boolean>(false)
     const [busca, setBusca] = useState<string>("")
+
+    // Guarda a nota que o usuário clicou (definitiva)
+  const [nota, setNota] = useState(0);
+  
+  // Guarda a posição do mouse (temporária)
+  const [hover, setHover] = useState(0);
+
+
+    const [totalArquivos, setTotalArquivos] = useState(0)
 
 
     const [tokens, setTokens] = useState<string[]>([])
@@ -55,7 +64,7 @@ const Busca = () => {
         if (idConsulta && idConsulta > 0) {
             buscarResultados(1, size, idConsulta)
         }
-    }, [idConsulta])
+    }, [idConsulta, size])
     const optionsMaxResultados: OptionType[] = [
         {
             value: "5",
@@ -84,6 +93,7 @@ const Busca = () => {
     const [dataAte, setDataAte] = useState("");
 
     const handleAplicar = () => {
+        criarConsulta(busca, categoria, dataDe, dataAte)
         setPaginaAtual(1)
     };
 
@@ -145,6 +155,7 @@ const Busca = () => {
             rolarParaOTopo();
             setResultados(response.content)
             setTotalPaginas(response.page.totalPages)
+            setTotalArquivos(response.page.totalElements)
 
         } catch (error) {
 
@@ -161,6 +172,10 @@ const Busca = () => {
             showMessage({ message: "Não foi possível abrir o documento.", type: "error" });
         }
     };
+
+    /*useEffect(()=>{
+        setNota(0)
+    },[idConsulta])*/
 
 
     return (
@@ -288,15 +303,48 @@ const Busca = () => {
                     </div>
                 </div>
             </div>
+            {/*resultados.length !== 0 && (<div className='w-full flex justify-between'>
+                <div className="flex gap-1">
+                    {[1, 2, 3, 4, 5].map((estrelaAtual) => {
 
-            <div className="flex flex-col gap-10">
+                        // A mágica acontece aqui: 
+                        // A estrela deve ficar amarela se o número dela for menor ou igual
+                        // ao número que está com hover. Se não tiver hover, olha pra nota fixa.
+                        const estaAtiva = estrelaAtual <= (hover || nota);
+
+                        return (
+                            <StarIcon
+                                key={estrelaAtual}
+                                // onMouseEnter: O mouse entrou nessa estrela (Ex: entrou na 3, hover vira 3)
+                                onMouseEnter={() => setHover(estrelaAtual)}
+                                // onMouseLeave: O mouse saiu do grupo de estrelas, zera o hover
+                                onMouseLeave={() => setHover(0)}
+                                // onClick: Grava a nota definitiva
+                                onClick={() => setNota(estrelaAtual)}
+
+                                className={`w-6 h-6 cursor-pointer transition-colors duration-200 ${estaAtiva ? 'text-amber-400' : 'text-[#898989]'
+                                    }`}
+                            />
+                        );
+                    })}
+                </div>
+                <p className='text-[#898989] text-sm'>total de arquivos: {totalArquivos}</p>
+
+            </div>)*/}
+
+            <div className="flex flex-col items-center gap-10">
                 {resultados.map((res) => {
                     return (
-                        <div key={res.id} className="flex gap-4 bg-[#EBE9E1] border border-[#898989] p-2 hover:bg-[#cac7b8] cursor-pointer transition-colors duration-200 shadow-md items-center">
+                        <div key={res.id} className="flex gap-4 bg-[#EBE9E1] border w-full border-[#898989] p-2 hover:bg-[#cac7b8] cursor-pointer transition-colors duration-200 shadow-md items-start"
+                            onClick={() => handleVisualizar(res.documento.id)}
+                            title="Visualizar"
+                        >
 
-                            <div> <DocumentTextIcon className="w-15 h-15 text-[#5c5c5c]"></DocumentTextIcon></div>
+                            <div >
+                                <DocumentTextIcon className="w-15 h-15 text-[#5c5c5c]"></DocumentTextIcon>
+                            </div>
                             <div className="w-full flex flex-col "
-                                onClick={() => handleVisualizar(res.documento.id)}>
+                            >
                                 <div className="text-xl">{res.documento.titulo}</div>
                                 <div className="text-[#898989]">PDF · {res.documento.nomeCategoria !== "Sem Categoria" ? `Categoria: ${res.documento.nomeCategoria}` : res.documento.nomeCategoria} · Indexado: {formatarData(res.documento.criadoEm)}
                                 </div>
@@ -331,7 +379,82 @@ const Busca = () => {
                     )
                 }
                 )}
+
+                {
+                    nadaEncontrado && (<div className='w-150 bg-[#EBE9E1] h-60 flex flex-col justify-center text-2xl items-center border border-[#898989] opacity-30'>
+                        <div >Nenhum arquivo encontrado</div>
+                        <HandThumbDownIcon className='w-20 h-20'> </HandThumbDownIcon>
+                    </div>)
+                }
+                {/* CONTROLES DE PAGINAÇÃO */}
+                {totalPaginas > 1 && (
+                    <div className="flex justify-center items-center mt-6">
+
+
+                        <div className="flex gap-2">
+                            <button
+                                disabled={paginaAtual === 1}
+                                onClick={() => {
+                                    buscarResultados(paginaAtual - 1, size, idConsulta!)
+                                    setPaginaAtual(paginaAtual - 1)
+                                }}
+                                className={"px-2 py-2 bg-[#E6E5DC] border border-[#c5c3b9] text-[#4a4a4a] hover:bg-[#d5d4cb] disabled:opacity-50 disabled:cursor-not-allowed transition-colors disabled:hover:bg-[#E6E5DC]"}
+                            >
+                                <ChevronLeftIcon className='w-6 h-6'></ChevronLeftIcon>
+                            </button>
+                            <button
+                                onClick={() => {
+                                    buscarResultados(1, size, idConsulta!)
+                                    setPaginaAtual(1)
+                                }}
+                                disabled={paginaAtual === 1}
+                                className={paginaAtual === 1 ? "px-4 py-2 bg-[#3f3f3f] border border-[#c5c3b9] text-white font-bold cursor-not-allowed" : "px-4 py-2 bg-[#E6E5DC] border border-[#c5c3b9] text-[#4a4a4a] hover:bg-[#d5d4cb] transition-colors"}
+                            >
+                                1
+                            </button>
+                            <div className={paginaAtual === 1 || paginaAtual === 2 ? "hidden" : ' flex items-start text-[#3f3f3f] text-3xl'}>
+                                <p className=''>...</p>
+                            </div>
+                            <button
+                                disabled={true}
+                                onClick={() => {
+                                    buscarResultados(1, size, idConsulta!)
+                                    setPaginaAtual(1)
+                                }}
+                                className={paginaAtual === 1 || paginaAtual === totalPaginas ? "hidden" : "px-4 py-2 bg-[#3f3f3f] border border-[#c5c3b9] text-white font-bold cursor-not-allowed"}
+                            >
+                                {paginaAtual}
+                            </button>
+
+
+                            <div className={paginaAtual === totalPaginas || paginaAtual === totalPaginas - 1 ? "hidden" : ' flex items-start text-[#3f3f3f] text-3xl'}>
+                                <p className=''>...</p>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    buscarResultados(totalPaginas, size, idConsulta!)
+                                    setPaginaAtual(totalPaginas)
+                                }}
+                                disabled={paginaAtual === totalPaginas}
+                                className={paginaAtual === totalPaginas ? "px-4 py-2 bg-[#3f3f3f] border border-[#c5c3b9] text-white font-bold cursor-not-allowed" : "px-4 py-2 bg-[#E6E5DC] border border-[#c5c3b9] text-[#4a4a4a] hover:bg-[#d5d4cb] transition-colors"}
+                            >
+                                {totalPaginas}
+                            </button>
+                            <button
+                                disabled={paginaAtual === totalPaginas}
+                                onClick={() => {
+                                    buscarResultados(paginaAtual + 1, size, idConsulta!)
+                                    setPaginaAtual(paginaAtual + 1)
+                                }}
+                                className={"px-2 py-2 bg-[#E6E5DC] border border-[#c5c3b9] text-[#4a4a4a] hover:bg-[#d5d4cb] disabled:hover:bg-[#E6E5DC] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"}
+                            >
+                                <ChevronRightIcon className='w-6 h-6'></ChevronRightIcon>
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
+
 
         </>
     )

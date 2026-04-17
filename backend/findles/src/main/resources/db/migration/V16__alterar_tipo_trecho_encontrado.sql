@@ -1,0 +1,1 @@
+ALTER TABLE resultado ALTER COLUMN trecho_encontrado TYPE TEXT;

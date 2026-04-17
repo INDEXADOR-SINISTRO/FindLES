@@ -159,13 +159,7 @@ const HistoricoDocumento = ({ params }: { params: Params }) => {
                 })}
             </div>
 
-            {/* Rodapé explicativo */}
-            {docs.length > 1 && (
-                <p className="text-sm text-[#9ca3af] mt-6 flex gap-2 items-center">
-                    <ArrowLongRightIcon className="w-4 h-4"></ArrowLongRightIcon>
-                    Restaurar cria uma nova versão com o conteúdo da selecionada
-                </p>
-            )}
+            
 
             <Dialog
             isOpen={isOpenRestaurar}

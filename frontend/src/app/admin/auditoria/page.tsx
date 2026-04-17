@@ -77,9 +77,9 @@ const Auditoria = () => {
       showMessage({ message: "Erro ao listar auditoria", type: "error" })
     }
   };
-
+  
   useEffect(() => {
-
+    console.log("Rodou o useEffect da Auditoria. Size atual:", size);
     buscarAuditorias(1, size)
     setPaginaAtual(1)
   }, [size])
