@@ -335,53 +335,56 @@ const Busca = () => {
             <div className="flex flex-col items-center gap-10">
                 {resultados.map((res) => {
                     return (
-                        <button
-                            key={res.id}
+
+                        <div key={res.id} className="flex gap-4 bg-[#EBE9E1] border w-full border-[#898989] p-2 hover:bg-[#cac7b8] cursor-pointer transition-colors duration-200 shadow-md items-start"
                             onClick={() => handleVisualizar(res.documento.id)}
                             title="Visualizar"
-                            className="flex gap-4 bg-[#EBE9E1] border border-[#898989] w-full p-2 hover:bg-[#cac7b8] cursor-pointer transition-colors duration-200 shadow-md items-start text-left"
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    handleVisualizar(res.documento.id);
+                                }
+                            }}
                         >
-                            <div className="flex"
+
+                            <div >
+                                <DocumentTextIcon className="w-15 h-15 text-[#5c5c5c]"></DocumentTextIcon>
+                            </div>
+                            <div className="w-full flex flex-col "
                             >
-
-                                <div >
-                                    <DocumentTextIcon className="w-15 h-15 text-[#5c5c5c]"></DocumentTextIcon>
+                                <div className="text-xl">{res.documento.titulo}</div>
+                                <div className="text-[#898989]">PDF · {res.documento.nomeCategoria !== "Sem Categoria" ? `Categoria: ${res.documento.nomeCategoria}` : res.documento.nomeCategoria} · Indexado: {formatarData(res.documento.criadoEm)}
                                 </div>
-                                <div className="w-full flex flex-col "
-                                >
-                                    <div className="text-xl">{res.documento.titulo}</div>
-                                    <div className="text-[#898989]">PDF · {res.documento.nomeCategoria !== "Sem Categoria" ? `Categoria: ${res.documento.nomeCategoria}` : res.documento.nomeCategoria} · Indexado: {formatarData(res.documento.criadoEm)}
-                                    </div>
-                                    <p className="bg-neutral-300 opacity-90 px-4 py-2 border border-neutral-700 text-shadow-2xs leading-relaxed cursor-default"
-                                        onClick={(e) => e.stopPropagation()}>
-                                        {res.trechoEncontrado?.replaceAll("�", "e").split(" ").map((string, index) => {
-                                            const ehPalavraBuscada = tokens.some((token) => string.toLowerCase().includes(token.toLowerCase()) /*&& token.toLowerCase().charAt(0) == string.toLowerCase().charAt(0)*/);
+                                <p className="bg-neutral-300 opacity-90 px-4 py-2 border border-neutral-700 text-shadow-2xs leading-relaxed cursor-default"
+                                    onClick={(e) => e.stopPropagation()}>
+                                    {res.trechoEncontrado?.replaceAll("�", "e").split(" ").map((string, index) => {
+                                        const ehPalavraBuscada = tokens.some((token) => string.toLowerCase().includes(token.toLowerCase()) /*&& token.toLowerCase().charAt(0) == string.toLowerCase().charAt(0)*/);
 
-                                            return (
-                                                <span
-                                                    key={index}
-                                                    className={`text-sm ${ehPalavraBuscada ? "text-neutral-950 font-bold" : "text-neutral-800"}`}
-                                                >
-                                                    {string}{" "}
-                                                </span>
-                                            );
-                                        })}
-                                    </p>
-                                    <div className="mt-2 flex gap-2 ">{res.busca.trim().split(" ").map((string, index) => {
-                                        if (string.trim() === "" || string.trim().length < 2) return;
-                                        if (res.trechoEncontrado?.replaceAll("�", "e").toLowerCase().includes(string.toLowerCase().trim())) {
-                                            return (<div className="py-1 px-4 text-xs bg-neutral-500 text-white" key={index}>{string}</div>)
-                                        }
+                                        return (
+                                            <span
+                                                key={index}
+                                                className={`text-sm ${ehPalavraBuscada ? "text-neutral-950 font-bold" : "text-neutral-800"}`}
+                                            >
+                                                {string}{" "}
+                                            </span>
+                                        );
+                                    })}
+                                </p>
+                                <div className="mt-2 flex gap-2 ">{res.busca.trim().split(" ").map((string, index) => {
+                                    if (string.trim() === "" || string.trim().length < 2) return;
+                                    if (res.trechoEncontrado?.replaceAll("�", "e").toLowerCase().includes(string.toLowerCase().trim())) {
+                                        return (<div className="py-1 px-4 text-xs bg-neutral-500 text-white" key={index}>{string}</div>)
+                                    }
 
-                                    })}</div>
-                                    <div className="flex w-full  text-[#696969]">
-                                        <p className="mr-2">Relevânica: </p>
-                                        <BarraRelevancia mostrarTexto={true} porcentagem={(res.relevanciaScore * 100).toFixed(2)} />
-                                    </div>
+                                })}</div>
+                                <div className="flex w-full  text-[#696969]">
+                                    <p className="mr-2">Relevânica: </p>
+                                    <BarraRelevancia mostrarTexto={true} porcentagem={(res.relevanciaScore * 100).toFixed(2)} />
                                 </div>
                             </div>
-                        </button>
-
+                        </div>
                     )
                 }
                 )}
