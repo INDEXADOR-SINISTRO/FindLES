@@ -358,7 +358,9 @@ const Busca = () => {
                                 <div className="text-[#898989]">PDF · {res.documento.nomeCategoria !== "Sem Categoria" ? `Categoria: ${res.documento.nomeCategoria}` : res.documento.nomeCategoria} · Indexado: {formatarData(res.documento.criadoEm)}
                                 </div>
                                 <p className="bg-neutral-300 opacity-90 px-4 py-2 border border-neutral-700 text-shadow-2xs leading-relaxed cursor-default"
-                                    onClick={(e) => e.stopPropagation()}>
+                                    onClick={(e) => e.stopPropagation()}
+                                    onKeyDown={(e) => e.stopPropagation()}
+                                    role="presentation">
                                     {res.trechoEncontrado?.replaceAll("�", "e").split(" ").map((string, index) => {
                                         const ehPalavraBuscada = tokens.some((token) => string.toLowerCase().includes(token.toLowerCase()) /*&& token.toLowerCase().charAt(0) == string.toLowerCase().charAt(0)*/);
 
