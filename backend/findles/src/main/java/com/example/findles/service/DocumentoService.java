@@ -82,6 +82,7 @@ public class DocumentoService {
         // 2. Resolvemos o Status Inicial (ID 3 = Pendente)
         var statusInicial = statusRepository.getReferenceById(3);
 
+
         for (MultipartFile arquivo : arquivos) {
             if (arquivo.isEmpty()) continue;
 
@@ -96,7 +97,7 @@ public class DocumentoService {
                 String hashConteudo = calcularHash(arquivo.getBytes());
 
                 // 4. A NOVA VALIDAÇÃO: Consulta o banco de dados
-                if (repository.existsByHashConteudoAtivoOuPendente(hashConteudo)) {
+                if (repository.existsByHashConteudoAtivoPendenteOuInvalido(hashConteudo)) {
                     throw new IllegalArgumentException("O arquivo '" + nomeOriginal + "' já foi inserido anteriormente no sistema (conteúdo duplicado).");
                 }
 
@@ -122,16 +123,12 @@ public class DocumentoService {
                 repository.save(doc);
 
             } catch (IllegalArgumentException e) {
-                // Captura a NOSSA exceção de validação e joga para cima (para o Controller enviar o erro 400 ao front)
                 throw e;
             } catch (Exception e) {
-                // Captura erros genéricos (ex: HD cheio, banco fora do ar)
                 throw new RuntimeException("Falha ao salvar o arquivo: " + arquivo.getOriginalFilename(), e);
             }
         }
 
-        // Aqui vale usar o logger do Slf4j ou similar
-        // logger.info("Arquivos cadastrados com sucesso");
     }
 
     private String calcularHash(byte[] bytesArquivo) throws NoSuchAlgorithmException {
@@ -199,12 +196,15 @@ public class DocumentoService {
         StatusDocumento statusAtivo = statusRepository.findById(1)
                 .orElseThrow(() -> new IllegalStateException("Status ATIVO não configurado."));
 
-        // Estruturas auxiliares para guardarmos tudo na memória antes de ir ao banco
+        StatusDocumento statusInvalido = statusRepository.findById(4)
+                .orElseThrow(() -> new IllegalStateException("Status INVÁLIDO não configurado."));
+
+
         Map<Documento, Map<String, Integer>> frequenciasPorDoc = new HashMap<>();
         Set<String> dicionarioDoLote = new HashSet<>();
 
         // ========================================================================
-        // FASE 1: Extrair e mastigar textos de todos os PDFs (Nenhuma ida ao banco!)
+        // FASE 1: Extrair e mastigar textos de todos os PDFs
         // ========================================================================
         for (Documento documento : documentosPendentes) {
             try {
@@ -221,48 +221,51 @@ public class DocumentoService {
                 documento.setTotalTermos(totalDeTermos);
                 documento.setTextoCru(textoCru);
 
-                // Guardamos os cálculos na memória
+
                 frequenciasPorDoc.put(documento, mapaFrequencia);
 
-                // Adicionamos as palavras desse documento no nosso dicionário geral
                 dicionarioDoLote.addAll(mapaFrequencia.keySet());
 
             } catch (Exception e) {
+
                 logger.error("Falha ao extrair doc {}: {}", documento.getId(), e.getMessage());
+                documento.setStatusDoc(statusInvalido);
+                documento.setTotalTermos(0);
             }
         }
 
-        if (frequenciasPorDoc.isEmpty()) return 0; // Se todos deram erro, para por aqui
+        // AJUSTE 2: Se absolutamente todos os documentos do lote deram exception,
+        // salvamos o status de erro deles no banco e encerramos.
+        if (frequenciasPorDoc.isEmpty()) {
+            repository.saveAll(documentosPendentes);
+            return 0;
+        }
 
         // ========================================================================
         // FASE 2: Sincronizar Termos com o Banco (1 SELECT, 1 INSERT)
         // ========================================================================
         logger.info("Sincronizando {} palavras únicas com o banco de dados...", dicionarioDoLote.size());
 
-        // Busca todas as palavras que já existem no banco de UMA VEZ SÓ
         List<Termo> termosNoBanco = termoRepository.findByTermoNormalizadoIn(dicionarioDoLote);
 
-        // Coloca em um Mapa (Palavra -> Objeto Termo) para busca rápida na memória
         Map<String, Termo> mapaTermosProntos = termosNoBanco.stream()
                 .collect(Collectors.toMap(Termo::getTermoNormalizado, t -> t));
 
-        // Descobre quais palavras são novidade e cria os objetos
         List<Termo> termosNovos = new ArrayList<>();
         for (String palavra : dicionarioDoLote) {
             if (!mapaTermosProntos.containsKey(palavra)) {
                 Termo novoTermo = new Termo(palavra);
                 termosNovos.add(novoTermo);
-                mapaTermosProntos.put(palavra, novoTermo); // Já deixa no mapa para a Fase 3
+                mapaTermosProntos.put(palavra, novoTermo);
             }
         }
 
-        // Salva todas as palavras novas de UMA SÓ VEZ
         if (!termosNovos.isEmpty()) {
             termoRepository.saveAll(termosNovos);
         }
 
         // ========================================================================
-        // FASE 3: Montar os Índices e Salvar os Documentos
+        // FASE 3: Montar os Índices e Configurar Status Finais
         // ========================================================================
         for (Map.Entry<Documento, Map<String, Integer>> entry : frequenciasPorDoc.entrySet()) {
             Documento documento = entry.getKey();
@@ -271,18 +274,21 @@ public class DocumentoService {
             documento.getIndices().clear();
 
             for (Map.Entry<String, Integer> palavraFreq : palavrasDoc.entrySet()) {
-                // Pega o termo que agora com certeza existe no nosso mapa da memória
                 Termo termoOficial = mapaTermosProntos.get(palavraFreq.getKey());
                 documento.adicionarIndice(termoOficial, palavraFreq.getValue());
             }
 
-            documento.setStatusDoc(statusAtivo);
+
+            if(documento.getTotalTermos() == 0){
+                documento.setStatusDoc(statusInvalido);
+            } else {
+                documento.setStatusDoc(statusAtivo);
+            }
         }
 
-        // Graças ao CascadeType.ALL, esse saveAll vai fazer os UPDATEs dos documentos
-        // e os INSERTs gigantes na tabela INDICE_INVERTIDO usando Batch!
-        repository.saveAll(frequenciasPorDoc.keySet());
+        repository.saveAll(documentosPendentes);
 
+        // Retorna a quantidade de documentos que foram processados com sucesso.
         return frequenciasPorDoc.size();
     }
 
@@ -423,7 +429,7 @@ public class DocumentoService {
         String novoCaminho = caminhoFisico.toString();
         String novoHash = calcularHash(arquivo.getBytes());
 
-        if (repository.existsByHashConteudoAtivoOuPendente(novoHash)) {
+        if (repository.existsByHashConteudoAtivoPendenteOuInvalido(novoHash)) {
             throw new IllegalArgumentException("O arquivo '" + novoTitulo + "' já foi inserido anteriormente no sistema (conteúdo duplicado).");
         }
 

@@ -81,7 +81,7 @@ const HistoricoDocumento = ({ params }: { params: Params }) => {
             setIsLoading(false);
         }
     };
-
+    console.log(docs)
     return (
         <div >
 

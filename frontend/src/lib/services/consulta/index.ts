@@ -1,4 +1,4 @@
-import { avaliarConsultaDto, consultaDto, listagemConsultaDto } from "@/types/consulta"
+import { avaliarConsultaDto, consultaDto, listagemConsultaDto, metricasDto } from "@/types/consulta"
 import { apiService, PaginatedResponse } from "../apiService"
 
 
@@ -34,6 +34,10 @@ class ConsultaService {
       return apiService.put<string, avaliarConsultaDto>(`${this.baseUrl}`, data)
     }
 
+
+  async getMetricas(dataDe: string, dataAte: string): Promise<metricasDto> {
+      return apiService.get<metricasDto>(`metricas?dataDe=${dataDe}&dataAte=${dataAte}`)
+    }
 
 
 

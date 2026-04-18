@@ -11,7 +11,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface DocumentoRepository extends JpaRepository<Documento, Integer> {
@@ -30,7 +29,7 @@ public interface DocumentoRepository extends JpaRepository<Documento, Integer> {
             Pageable pageable);
 
     @Query("SELECT d FROM Documento d WHERE " +
-            "d.statusDoc.id <> 2 AND " +
+            "d.statusDoc.id = 1 AND " +
             "(:idCategoria IS NULL OR d.categoria.id = :idCategoria) AND " +
             "(cast(:dataDe as timestamp) IS NULL OR d.criadoEm >= :dataDe) AND " +
             "(cast(:dataAte as timestamp) IS NULL OR d.criadoEm <= :dataAte) AND " +
@@ -59,8 +58,8 @@ public interface DocumentoRepository extends JpaRepository<Documento, Integer> {
     @Query("SELECT d FROM Documento d WHERE d.id = :id OR d.documentoOrigem.id = :id ORDER BY d.id desc")
     List<Documento> historicoDocumento(@Param("id") Integer id);
 
-    @Query("SELECT COUNT(d) > 0 FROM Documento d WHERE d.hashConteudo = :hash AND d.statusDoc.id IN (1, 3)")
-    boolean existsByHashConteudoAtivoOuPendente(@Param("hash") String hash);
+    @Query("SELECT COUNT(d) > 0 FROM Documento d WHERE d.hashConteudo = :hash AND d.statusDoc.id IN (1, 3, 4)")
+    boolean existsByHashConteudoAtivoPendenteOuInvalido(@Param("hash") String hash);
 
     long countByStatusDocId(Integer statusId);
 }

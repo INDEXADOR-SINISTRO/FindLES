@@ -159,7 +159,7 @@ public class DocumentoController {
             relogio.stop();
             // Se processou 1 ou mais, devolve a mensagem de sucesso com a quantidade
             auditoriaService.criarHistorico(usuarioLogado,"Indexar arquivos pendentes: " +  quantidadeIndexada + " documento(s)","",relogio.getTotalTimeMillis());
-            return ResponseEntity.ok(quantidadeIndexada + " documento(s) indexado(s) com sucesso e atualizado(s) para ATIVO!");
+            return ResponseEntity.ok(quantidadeIndexada + " documento(s) indexado(s)");
 
         } catch (Exception e) {
             relogio.stop();

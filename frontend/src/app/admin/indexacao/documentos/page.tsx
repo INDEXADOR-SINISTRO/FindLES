@@ -56,7 +56,7 @@ const Documentos = () => {
 
     const [docIdSelecionado, setDocIdSelecionado] = useState<number>(0)
 
-    const [maxResultados, setMaxResultados] = useState<number>(5)
+    const [maxResultados, setMaxResultados] = useState<number>(10)
 
     const [totalPaginas, setTotalPaginas] = useState(0)
     const [totalArquivos, setTotalArquivos] = useState(0)
@@ -89,7 +89,10 @@ const Documentos = () => {
         setCategoria("");
         setDataDe("");
         setDataAte("");
-        setSize(5);
+        setSize(10);
+        if (docs.length === 0) {
+            buscarDocumentos(titulo,1, 10, "", "", "")
+        }
     };
 
 
@@ -150,7 +153,7 @@ const Documentos = () => {
     useEffect(() => {
 
         buscarDocumentos("", paginaAtual, size, categoria, dataDe, dataAte)
-    }, [])
+    }, [size])
 
 
     const buscarDocumentos = async (titulo: string, paginaAtual: number, size: number, categoria: string, dataDe: string, dataAte: string) => {
@@ -542,7 +545,7 @@ const Documentos = () => {
             <div className='text-[#898989] text-lg'>
                 Ao confirmar o calculo de TF-IDF será processado com base em todos os documentos com status "ativo"
             </div>
-            
+
         </Dialog>
     </div>
     );

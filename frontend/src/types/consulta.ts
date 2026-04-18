@@ -26,3 +26,18 @@ export interface avaliarConsultaDto{
     avaliacao: number;
     idConsulta: number;
 }
+
+export interface metricasDto{
+    totalConsultas: number;
+    mediaTempoResposta: number;
+    mediaResultadosBusca: number;
+    consultasSemResultado: number;
+    avaliacaoMedia: number;
+    grafico: graficoDto[];
+}
+
+export interface graficoDto{
+    totalConsultas: number;
+    tempoMedio: number;
+    data: string;
+}
