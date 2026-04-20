@@ -37,6 +37,19 @@ public class TokenService {
                 .compact();
     }
 
+    public String gerarTokenRecover(Usuario usuario) {
+        return Jwts.builder()
+                .issuer("API Findles")
+                .subject(usuario.getEmail())
+                .claim("id", usuario.getId())
+                .claim("role", "RECOVER")
+                .claim("nome", usuario.getNome())
+                .issuedAt(new Date())
+                .expiration(Date.from(dataExpiracaoRecover()))
+                .signWith(getSigningKey())
+                .compact();
+    }
+
 
     public String getSubject(String tokenJWT) {
         try {
@@ -51,7 +64,9 @@ public class TokenService {
             throw new RuntimeException("Token JWT inválido ou expirado!");
         }
     }
-
+    private Instant dataExpiracaoRecover() {
+        return LocalDateTime.now().plusMinutes(10).toInstant(ZoneOffset.of("-03:00"));
+    }
 
     private Instant dataExpiracao() {
         return LocalDateTime.now().plusHours(10).toInstant(ZoneOffset.of("-03:00"));

@@ -2,10 +2,14 @@ package com.example.findles.controller;
 
 import com.example.findles.domain.dto.request.DadosCadastroUsuarioDTO;
 import com.example.findles.domain.dto.request.DadosEditarUsuarioDTO;
+import com.example.findles.domain.dto.request.EmailRecoverPasswordDTO;
+import com.example.findles.domain.dto.request.RedefinirSenhaDTO;
 import com.example.findles.domain.dto.response.DadosAuditoriaDTO;
+import com.example.findles.domain.dto.response.DadosTokenJWTDTO;
 import com.example.findles.domain.dto.response.DadosUsuarioDTO;
 import com.example.findles.domain.entity.Usuario;
 import com.example.findles.service.AuditoriaService;
+import com.example.findles.service.TokenService;
 import com.example.findles.service.UsuarioService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +17,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StopWatch;
 import org.springframework.web.bind.annotation.*;
@@ -34,6 +40,9 @@ public class UsuarioController {
     @Autowired
     private AuditoriaService auditoriaService;
 
+    @Autowired
+    private TokenService tokenService;
+
     @PostMapping
     @Transactional // Mantemos o Transactional aqui na borda da aplicação
     public ResponseEntity<String> cadastrar(@RequestBody @Valid DadosCadastroUsuarioDTO dados, UriComponentsBuilder uriBuilder) {
@@ -50,6 +59,21 @@ public class UsuarioController {
         } catch (IllegalArgumentException e) {
             // Se o Service reclamar (ex: email duplicado), devolvemos o erro 400 Bad Request
             logger.error("Erro ao cadastrar usuário: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PutMapping
+    @Transactional
+    public ResponseEntity<String> redefinirSenha(
+            @RequestBody @Valid RedefinirSenhaDTO dados,
+            @RequestParam String token) {
+
+        try {
+            usuarioService.redefinirSenha(dados.password(),token);
+            return ResponseEntity.ok("Senha redefinida com sucesso");
+        } catch (Exception e) {
+            logger.error("Erro ao redefinir senha: {}", e.getMessage());
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
@@ -95,6 +119,19 @@ public class UsuarioController {
             relogio.stop();
             auditoriaService.criarHistorico(usuarioLogado,"Editar usuário com id " + id,e.getMessage(), relogio.getTotalTimeMillis());
             return ResponseEntity.badRequest().build(); // Retorna 400 para outros erros
+        }
+    }
+
+    @PostMapping("/recover")
+    public ResponseEntity<String> enviarEmailRecuperacao(@RequestBody @Valid EmailRecoverPasswordDTO dados) {
+
+        try{
+            logger.info("Solicitação de recuperação de senha");
+            usuarioService.sendEmailRecover(dados.email());
+            return ResponseEntity.ok("Email enviado com sucesso");
+        }catch(Exception e){
+            logger.error("Erro ao solicitar recuperação de senha: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 }

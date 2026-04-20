@@ -29,6 +29,14 @@ export interface authDto{
     senha: string;
 }
 
+export interface emailRecoverPasswordDto{
+    email: string;
+}
+
+export interface redefinirSenhaDto{
+    password: string;
+}
+
 export enum userRole {
   USER = "ROLE_USER",
   ADMIN = "ROLE_ADMIN",
