@@ -37,6 +37,8 @@ const Busca = () => {
 
     const [totalArquivos, setTotalArquivos] = useState(0)
 
+    const [isLoading,setIsLoading] = useState<boolean>(false)
+
 
     const [tokens, setTokens] = useState<string[]>([])
     const [idConsulta, setIdConsulta] = useState<number>()
@@ -110,6 +112,7 @@ const Busca = () => {
             return;
         }
         try {
+            setIsLoading(true);
             const response = await consultaService.criarConsulta(
                 {
                     busca: busca,
@@ -125,6 +128,8 @@ const Busca = () => {
         } catch (error) {
 
             showMessage({ message: "Erro ao consultar documentos", type: "error" })
+        }finally{
+            setIsLoading(false);
         }
     };
 
@@ -197,6 +202,7 @@ const Busca = () => {
                     onClick={() => { criarConsulta(busca, categoria, dataDe, dataAte) }}
                     className='bg-[#3f3f3f] text-white '
                     text='Buscar'
+                    isLoading={isLoading}
                 />
             </div>
             {/* Container principal com a cor de fundo bege*/}
