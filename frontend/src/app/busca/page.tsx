@@ -13,6 +13,7 @@ import { CategoriaList } from "@/types/documento"
 import { resultadoDto } from "@/types/resultado"
 import { ChevronLeftIcon, ChevronRightIcon, DocumentTextIcon, FunnelIcon, HandThumbDownIcon, StarIcon } from "@heroicons/react/24/solid"
 import { useEffect, useRef, useState } from "react"
+import { usePrevious } from "../../hooks/usePrevious"
 
 
 
@@ -26,7 +27,7 @@ const Busca = () => {
     const [size, setSize] = useState<number>(10); // Quantos itens mostrar por vez
     const [isOpenDelete, setIsOpenDelete] = useState<boolean>(false)
     const [busca, setBusca] = useState<string>("")
-
+    const buscaPrevious = usePrevious(busca);
     // Guarda a nota que o usuário clicou (definitiva)
     const [nota, setNota] = useState(0);
 
@@ -105,7 +106,7 @@ const Busca = () => {
     };
 
     const criarConsulta = async (busca: string, categoria: string, dataDe: string, dataAte: string) => {
-        if (busca.trim() === "" || busca.trim().length < 2) {
+        if (busca.trim() === "" || busca.trim().length < 2 || (busca === buscaPrevious)) {
             return;
         }
         try {
