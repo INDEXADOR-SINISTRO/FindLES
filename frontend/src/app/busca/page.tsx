@@ -9,6 +9,7 @@ import { consultaService } from "@/lib/services/consulta"
 import { documentoService } from "@/lib/services/documento"
 import { resultadoService } from "@/lib/services/resultado"
 import { formatarData, formatarDataHora } from "@/lib/utils/date"
+import { avaliarConsultaDto } from "@/types/consulta"
 import { CategoriaList } from "@/types/documento"
 import { resultadoDto } from "@/types/resultado"
 import { ChevronLeftIcon, ChevronRightIcon, DocumentTextIcon, FunnelIcon, HandThumbDownIcon, StarIcon } from "@heroicons/react/24/solid"
@@ -107,6 +108,21 @@ const Busca = () => {
         setSize(10);
     };
 
+    const avaliarConsulta = async(nota: number)=>{
+        try{
+
+            const payload: avaliarConsultaDto = {
+                avaliacao: nota,
+                idConsulta: idConsulta!
+            }            
+            await consultaService.avaliar(payload)
+            showMessage({ message: "Avaliado", type: "success" })
+        }catch (error) {
+
+            showMessage({ message: "Erro ao avaliar consulta", type: "error" })
+        }
+    }
+
     const criarConsulta = async (busca: string, categoria: string, dataDe: string, dataAte: string) => {
         if (busca.trim() === "" || busca.trim().length < 2 || (busca === buscaPrevious)) {
             return;
@@ -179,9 +195,9 @@ const Busca = () => {
         }
     };
 
-    /*useEffect(()=>{
+    useEffect(()=>{
         setNota(0)
-    },[idConsulta])*/
+    },[idConsulta])
 
 
     return (
@@ -310,34 +326,42 @@ const Busca = () => {
                     </div>
                 </div>
             </div>
-            {/*resultados.length !== 0 && (<div className='w-full flex justify-between'>
-                <div className="flex gap-1">
-                    {[1, 2, 3, 4, 5].map((estrelaAtual) => {
+            {resultados.length !== 0 && (<div className='w-full flex justify-between items-end'>
+                <div className="border-[#c5c3b9] border bg-[#EAE8E1] px-2 mb-2 flex flex-col items-center">
+                    <p className="text-[#3f3f3f]">Avalie o resultado da busca:</p>
+                    <div className="flex gap-1">
+                        {[1, 2, 3, 4, 5].map((estrelaAtual) => {
 
-                        // A mágica acontece aqui: 
-                        // A estrela deve ficar amarela se o número dela for menor ou igual
-                        // ao número que está com hover. Se não tiver hover, olha pra nota fixa.
-                        const estaAtiva = estrelaAtual <= (hover || nota);
+                            // A mágica acontece aqui: 
+                            // A estrela deve ficar amarela se o número dela for menor ou igual
+                            // ao número que está com hover. Se não tiver hover, olha pra nota fixa.
+                            const estaAtiva = estrelaAtual <= (hover || nota);
 
-                        return (
-                            <StarIcon
-                                key={estrelaAtual}
-                                // onMouseEnter: O mouse entrou nessa estrela (Ex: entrou na 3, hover vira 3)
-                                onMouseEnter={() => setHover(estrelaAtual)}
-                                // onMouseLeave: O mouse saiu do grupo de estrelas, zera o hover
-                                onMouseLeave={() => setHover(0)}
-                                // onClick: Grava a nota definitiva
-                                onClick={() => setNota(estrelaAtual)}
+                            return (
+                                <StarIcon
+                                    key={estrelaAtual}
+                                    // onMouseEnter: O mouse entrou nessa estrela (Ex: entrou na 3, hover vira 3)
+                                    onMouseEnter={() => setHover(estrelaAtual)}
+                                    // onMouseLeave: O mouse saiu do grupo de estrelas, zera o hover
+                                    onMouseLeave={() => setHover(0)}
+                                    // onClick: Grava a nota definitiva
+                                    onClick={() => { 
+                                        setNota(estrelaAtual)
+                                        avaliarConsulta(estrelaAtual)
+                                    }}
 
-                                className={`w-6 h-6 cursor-pointer transition-colors duration-200 ${estaAtiva ? 'text-amber-400' : 'text-[#898989]'
-                                    }`}
-                            />
-                        );
-                    })}
+                                    role="presentation"
+
+                                    className={`w-6 h-6 cursor-pointer transition-colors duration-200 ${estaAtiva ? 'text-amber-400' : 'text-[#898989]'
+                                        }`}
+                                />
+                            );
+                        })}
+                    </div>
                 </div>
                 <p className='text-[#898989] text-sm'>total de arquivos: {totalArquivos}</p>
 
-            </div>)*/}
+            </div>)}
 
             <div className="flex flex-col items-center gap-10">
                 {resultados.map((res) => {

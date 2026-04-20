@@ -11,7 +11,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 
 @Service
@@ -22,10 +24,12 @@ public class AuditoriaService {
     @Autowired
     private AuditoriaRepository repository;
 
-    public Page<DadosAuditoriaDTO> listar(Pageable paginacao) {
+    public Page<DadosAuditoriaDTO> listar(Pageable paginacao, String nomeOuEmail, LocalDate dataDe, LocalDate dataAte) {
 
+        LocalDateTime dataDeConvertida = (dataDe != null) ? dataDe.atStartOfDay() : null;
+        LocalDateTime dataAteConvertida = (dataAte != null) ? dataAte.atTime(LocalTime.MAX) : null;
 
-        Page<Auditoria> auditoriasPaginadas = repository.findAll(paginacao);
+        Page<Auditoria> auditoriasPaginadas = repository.buscarComFiltrosDinamicos(nomeOuEmail, dataDeConvertida, dataAteConvertida,paginacao);
 
         return auditoriasPaginadas.map(DadosAuditoriaDTO::new);
     }

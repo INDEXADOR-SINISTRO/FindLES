@@ -3,7 +3,7 @@
 import Button from "@/components/widgets/Button";
 import Input from "@/components/widgets/input";
 import { useSnackbar } from "@/components/widgets/snackbar";
-import { ArrowLeftIcon, ExclamationTriangleIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftIcon, ExclamationCircleIcon, ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
 
 import Link from "next/link";
@@ -43,13 +43,14 @@ const Recover = () => {
         <form className="flex flex-col" onSubmit={(e) => e.preventDefault()}>
 
 
-          <div className="flex items-stretch border border-gray-400 mb-8">
+          <div className="flex border border-gray-400 mb-8">
 
-            <div className="w-3 bg-gray-300 shrink-0"></div>
+            <div className="w-3 bg-gray-300"></div>
 
             <div className="p-4 text-sm text-gray-700 font-medium leading-relaxed flex gap-2">
               Informe o e-mail da sua conta para receber o link de recuperação.
             </div>
+            <ExclamationCircleIcon className='w-8 h-8 text-gray-700 my-auto ml-auto mr-2'></ExclamationCircleIcon>
           </div>
 
           <div className="mb-4">

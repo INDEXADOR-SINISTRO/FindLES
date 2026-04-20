@@ -8,6 +8,7 @@ import { useSnackbar } from '@/components/widgets/snackbar';
 import { documentoService } from '@/lib/services/documento';
 import { formatarDataHora } from '@/lib/utils/date';
 import { CategoriaList, listagemDocumentoDto } from '@/types/documento';
+import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { ArrowLongLeftIcon } from '@heroicons/react/24/solid';
 import { useRouter } from 'next/navigation';
 import { use, useEffect, useState } from 'react';
@@ -129,13 +130,14 @@ const AtualizarDoc = ({ params }: { params: Params }) => {
                     value={String(categoria)}
                 />
 
-                <div className="flex items-stretch border border-gray-400 mt-6">
+                <div className="flex border border-gray-400 mt-6">
 
-                    <div className="w-3 bg-gray-300 shrink-0"></div>
+                    <div className="w-3 bg-gray-300"></div>
 
                     <div className="px-4 py-2.5  text-gray-700 font-medium leading-relaxed flex gap-2">
                         Substituir arquivo irá criar nova versão no histórico.
                     </div>
+                    <ExclamationTriangleIcon className='w-5 h-5 text-gray-700 my-auto ml-auto mr-2'></ExclamationTriangleIcon>
                 </div>
 
 

@@ -1,7 +1,10 @@
 package com.example.findles.controller;
 
+import com.example.findles.domain.dto.request.ConsultaAvaliacaoDTO;
 import com.example.findles.domain.dto.request.NovaConsultaDTO;
+import com.example.findles.domain.dto.response.DadosAuditoriaDTO;
 import com.example.findles.domain.dto.response.DadosConsultaDTO;
+import com.example.findles.domain.dto.response.DadosListagemConsultaDTO;
 import com.example.findles.domain.dto.response.DadosListagemDocumentoDTO;
 import com.example.findles.domain.entity.Usuario;
 import com.example.findles.service.AuditoriaService;
@@ -37,6 +40,21 @@ public class ConsultaController {
     @Autowired
     private ProcessadorTextoService processador;
 
+    @PutMapping
+    public ResponseEntity<String> avaliarConsulta(
+            @RequestBody ConsultaAvaliacaoDTO request
+            ){
+        try{
+            logger.info("Avaliando consulta com id: {}",request.idConsulta() );
+            consultaService.avaliar(request);
+            return ResponseEntity.ok("Consulta avaliada com sucesso");
+        }catch (Exception e){
+            logger.error("Erro ao avaliar a consulta {}: {}",request.idConsulta(), e.getMessage());
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        }
+
+    }
+
 
     @PostMapping
     public ResponseEntity<DadosConsultaDTO> realizarConsulta(
@@ -57,5 +75,17 @@ public class ConsultaController {
         );
 
         return ResponseEntity.ok(new DadosConsultaDTO(idConsulta, tokens));
+    }
+
+    @GetMapping
+    public ResponseEntity<Page<DadosListagemConsultaDTO>> listar(
+            @RequestParam(required = false) String nomeOuEmail,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataDe,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataAte,
+            @RequestParam(required = true) Boolean onlyErro,
+            @PageableDefault(size = 10, sort = {"dataConsulta"}) Pageable paginacao) {
+
+        var pagina = consultaService.listar(paginacao, nomeOuEmail,dataDe,dataAte, onlyErro);
+        return ResponseEntity.ok(pagina);
     }
 }
