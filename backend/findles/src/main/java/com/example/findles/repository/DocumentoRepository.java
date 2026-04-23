@@ -61,5 +61,48 @@ public interface DocumentoRepository extends JpaRepository<Documento, Integer> {
     @Query("SELECT COUNT(d) > 0 FROM Documento d WHERE d.hashConteudo = :hash AND d.statusDoc.id IN (1, 3, 4)")
     boolean existsByHashConteudoAtivoPendenteOuInvalido(@Param("hash") String hash);
 
+    @Transactional
+    @Modifying
+    @Query(value = "DELETE FROM RESULTADO WHERE ID_DOCUMENTO IN (" +
+            "   SELECT d.ID_DOCUMENTO FROM DOCUMENTO d " +
+            "   LEFT JOIN DOCUMENTO orig ON d.ID_DOCUMENTO_ORIGEM = orig.ID_DOCUMENTO " +
+            "   WHERE d.ID_STATUS_DOC = 2 " +
+            "   AND (d.ID_DOCUMENTO_ORIGEM IS NULL OR orig.ID_STATUS_DOC = 2) " +
+            "   AND NOT EXISTS (" +
+            "       SELECT 1 FROM DOCUMENTO doc_filho " +
+            "       WHERE doc_filho.ID_DOCUMENTO_ORIGEM = d.ID_DOCUMENTO " +
+            "       AND doc_filho.ID_STATUS_DOC <> 2" +
+            "   )" +
+            ")", nativeQuery = true)
+    void deletarResultadosPorDocumento();
+
+
+    @Query(value = "SELECT d.* FROM DOCUMENTO d " +
+            "LEFT JOIN DOCUMENTO orig ON d.ID_DOCUMENTO_ORIGEM = orig.ID_DOCUMENTO " +
+            "WHERE d.ID_STATUS_DOC = 2 " +
+            "AND (d.ID_DOCUMENTO_ORIGEM IS NULL OR orig.ID_STATUS_DOC = 2) " +
+            "AND NOT EXISTS (" +
+            "   SELECT 1 FROM DOCUMENTO doc_filho " +
+            "   WHERE doc_filho.ID_DOCUMENTO_ORIGEM = d.ID_DOCUMENTO " +
+            "   AND doc_filho.ID_STATUS_DOC <> 2" +
+            ")", nativeQuery = true)
+    List<Documento> buscarDocumentosInativosParaDeletar();
+
+
+    @Transactional
+    @Modifying
+    @Query(value = "DELETE FROM DOCUMENTO WHERE ID_DOCUMENTO IN (" +
+            "   SELECT d.ID_DOCUMENTO FROM DOCUMENTO d " +
+            "   LEFT JOIN DOCUMENTO orig ON d.ID_DOCUMENTO_ORIGEM = orig.ID_DOCUMENTO " +
+            "   WHERE d.ID_STATUS_DOC = 2 " +
+            "   AND (d.ID_DOCUMENTO_ORIGEM IS NULL OR orig.ID_STATUS_DOC = 2) " +
+            "   AND NOT EXISTS (" +
+            "       SELECT 1 FROM DOCUMENTO doc_filho " +
+            "       WHERE doc_filho.ID_DOCUMENTO_ORIGEM = d.ID_DOCUMENTO " +
+            "       AND doc_filho.ID_STATUS_DOC <> 2" +
+            "   )" +
+            ")", nativeQuery = true)
+    void deletarDocumentosInativos();
+
     long countByStatusDocId(Integer statusId);
 }

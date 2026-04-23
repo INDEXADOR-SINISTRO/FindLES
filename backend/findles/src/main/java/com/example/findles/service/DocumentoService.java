@@ -6,6 +6,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -549,6 +550,43 @@ public class DocumentoService {
 
 
         return repository.save(novoDoc).getId();
+    }
+    @Scheduled(cron = "0 * * * * *")
+    //@Scheduled(cron = "0 0 0 * * SUN")
+    public void executarTarefaSemanal() {
+        try {
+            logger.info("Iniciando limpeza de arquivos e registros inativos...");
+
+            List<Documento> documentosParaRemover = repository.buscarDocumentosInativosParaDeletar();
+
+            if (documentosParaRemover.isEmpty()) {
+                logger.info("Nenhum documento inativo encontrado para remoção.");
+                return;
+            }
+
+
+            for (Documento doc : documentosParaRemover) {
+                try {
+                    if (doc.getCaminhoArquivo() != null) {
+                        Path caminhoParaDeletar = Paths.get(doc.getCaminhoArquivo());
+                        Files.deleteIfExists(caminhoParaDeletar);
+                    }
+                } catch (Exception e) {
+                    logger.error("Não foi possível remover o arquivo físico {}: {}",
+                            doc.getCaminhoArquivo(), e.getMessage());
+                }
+            }
+
+
+            repository.deletarResultadosPorDocumento();
+
+            repository.deletarDocumentosInativos();
+
+            logger.info("Agendamento: {} documentos e seus arquivos foram limpos com sucesso.", documentosParaRemover.size());
+
+        } catch (Exception e) {
+            logger.error("Agendamento: Falha crítica na limpeza semanal: {}", e.getMessage());
+        }
     }
 
 
