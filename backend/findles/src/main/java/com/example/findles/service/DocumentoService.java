@@ -551,8 +551,8 @@ public class DocumentoService {
 
         return repository.save(novoDoc).getId();
     }
-    @Scheduled(cron = "0 * * * * *")
-    //@Scheduled(cron = "0 0 0 * * SUN")
+    //@Scheduled(cron = "0 * * * * *")
+    @Scheduled(cron = "0 0 0 * * SUN")
     public void executarTarefaSemanal() {
         try {
             logger.info("Iniciando limpeza de arquivos e registros inativos...");

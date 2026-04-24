@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
 
 
 @Service
@@ -37,6 +38,15 @@ public class AuditoriaService {
     public void criarHistorico(Usuario usuario, String acao, String erro, long tempoResposta) {
         Auditoria aud = new Auditoria(usuario,acao, LocalDateTime.now(),erro,tempoResposta);
         repository.save(aud);
+
+    }
+
+    public List<Auditoria> listarRelatorio(String nomeOuEmail, LocalDate dataDe, LocalDate dataAte) {
+
+        LocalDateTime dataDeConvertida = (dataDe != null) ? dataDe.atStartOfDay() : null;
+        LocalDateTime dataAteConvertida = (dataAte != null) ? dataAte.atTime(LocalTime.MAX) : null;
+
+        return repository.listarRelatorio(nomeOuEmail, dataDeConvertida, dataAteConvertida);
 
     }
 }

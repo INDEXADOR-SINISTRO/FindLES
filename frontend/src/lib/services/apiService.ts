@@ -118,6 +118,25 @@ class ApiService {
     }
   }
 
+
+  async getFilters<T>(
+    url: string,
+    filters?: Record<string, any>
+  ): Promise<T> {
+    try {
+      const params = {
+        ...filters,
+      }
+      const response = await apiClient.get<T>(
+        url,
+        { params }
+      )
+      return response.data
+    } catch (error) {
+      throw this.handleError(error)
+    }
+  }
+
   /**
    * Upload de arquivo
    */
@@ -151,10 +170,14 @@ class ApiService {
   /**
    * Download de arquivo
    */
-  async downloadFile(url: string, filename: string): Promise<void> {
+  async downloadFile(url: string, filename: string, filters?: Record<string, any>): Promise<void> {
     try {
-      const response = await apiClient.get(url, {
-        responseType: 'blob',
+      const params = {
+        ...filters,
+      }
+      const response = await apiClient.get(url,{
+        params: params,
+        responseType: 'blob'
       })
 
       const blob = new Blob([response.data])

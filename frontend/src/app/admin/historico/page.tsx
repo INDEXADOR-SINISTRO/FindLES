@@ -1,12 +1,12 @@
 "use client";
 
-import AsyncSelect, { Option } from "@/components/widgets/AsyncSelect";
 import Button from "@/components/widgets/Button";
 import Input from "@/components/widgets/input";
 import Select, { OptionType } from "@/components/widgets/select";
 import { useSnackbar } from "@/components/widgets/snackbar";
 import { auditoriaService } from "@/lib/services/auditoria";
 import { consultaService } from "@/lib/services/consulta";
+import { exportacaoService } from "@/lib/services/exportacao";
 import { formatarData, formatarDataHora } from "@/lib/utils/date";
 import { AuditoriaDto } from "@/types/auditoria";
 import { listagemConsultaDto } from "@/types/consulta";
@@ -47,6 +47,10 @@ const Historico = () => {
 
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [size, setSize] = useState<number>(10);
+
+  const [isLoadingPdf,setIsLoadingPdf] = useState<boolean>(false);
+  const [isLoadingCsv,setIsLoadingCsv] = useState<boolean>(false);
+
 
   const [maxResultados, setMaxResultados] = useState<number>(10)
 
@@ -116,6 +120,40 @@ const Historico = () => {
     }
   };
 
+
+  const handleExportarPdf = async()=>{
+    try{
+        setIsLoadingPdf(true)
+       await exportacaoService.baixarRelatorio("consulta","PDF",{
+          nomeOuEmail: nomeOuEmail,
+          dataDe: dataDe,
+          dataAte: dataAte,
+          onlyErro: erroChecked
+        })
+    }catch(e){
+      
+      showMessage({ message: "Erro ao exportar consultas", type: "error" })
+    }finally{
+      setIsLoadingPdf(false)
+    }
+  }
+
+  const handleExportarCsv = async()=>{
+    try{
+      setIsLoadingCsv(true)
+       await exportacaoService.baixarRelatorio("consulta","CSV",{
+          nomeOuEmail: nomeOuEmail,
+          dataDe: dataDe,
+          dataAte: dataAte,
+          onlyErro: erroChecked
+        })
+    }catch(e){
+      
+      showMessage({ message: "Erro ao exportar consultas", type: "error" })
+    }finally{
+      setIsLoadingCsv(false)
+    }
+  }
 
 
 
@@ -267,15 +305,19 @@ const Historico = () => {
 
               <div className={'flex gap-2'}>
                 <Button
-                  onClick={() => { showMessage({ message: "Não implementado", type: "warning" }) }}
+                  onClick={handleExportarCsv}
                   className='bg-neutral-100  hover:bg-neutral-200 text-[#404040] border border-[#3F3E3E] text-sm '
                   text='Exportar CSV'
+                  isLoading={isLoadingCsv}
+                  corSpin="PRETO"
                 />
 
                 <Button
-                  onClick={() => { showMessage({ message: "Não implementado", type: "warning" }) }}
+                  onClick={handleExportarPdf}
                   className='bg-neutral-100  hover:bg-neutral-200 text-[#404040] border border-[#3F3E3E] text-sm '
                   text='Exportar PDF'
+                  isLoading={isLoadingPdf}
+                  corSpin="PRETO"
                 />
               </div>
 

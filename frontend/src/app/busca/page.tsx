@@ -7,6 +7,7 @@ import Select, { OptionType } from "@/components/widgets/select"
 import { useSnackbar } from "@/components/widgets/snackbar"
 import { consultaService } from "@/lib/services/consulta"
 import { documentoService } from "@/lib/services/documento"
+import { exportacaoService } from "@/lib/services/exportacao"
 import { resultadoService } from "@/lib/services/resultado"
 import { formatarData, formatarDataHora } from "@/lib/utils/date"
 import { avaliarConsultaDto } from "@/types/consulta"
@@ -33,6 +34,10 @@ const Busca = () => {
 
     // Guarda a posição do mouse (temporária)
     const [hover, setHover] = useState(0);
+
+    
+  const [isLoadingPdf,setIsLoadingPdf] = useState<boolean>(false);
+  const [isLoadingCsv,setIsLoadingCsv] = useState<boolean>(false);
 
 
     const [totalArquivos, setTotalArquivos] = useState(0)
@@ -105,16 +110,16 @@ const Busca = () => {
         setSize(10);
     };
 
-    const avaliarConsulta = async(nota: number)=>{
-        try{
+    const avaliarConsulta = async (nota: number) => {
+        try {
 
             const payload: avaliarConsultaDto = {
                 avaliacao: nota,
                 idConsulta: idConsulta!
-            }            
+            }
             await consultaService.avaliar(payload)
             showMessage({ message: "Avaliado", type: "success" })
-        }catch (error) {
+        } catch (error) {
 
             showMessage({ message: "Erro ao avaliar consulta", type: "error" })
         }
@@ -142,6 +147,34 @@ const Busca = () => {
             showMessage({ message: "Erro ao consultar documentos", type: "error" })
         }
     };
+
+    const handleExportarPdf = async()=>{
+          try{
+              setIsLoadingPdf(true)
+             await exportacaoService.baixarRelatorio("resultado","PDF",{
+                    idConsulta: idConsulta
+                })
+          }catch(e){
+            
+            showMessage({ message: "Erro ao exportar resultado", type: "error" })
+          }finally{
+            setIsLoadingPdf(false)
+          }
+        }
+      
+        const handleExportarCsv = async()=>{
+          try{
+            setIsLoadingCsv(true)
+             await exportacaoService.baixarRelatorio("resultado","CSV",{
+                    idConsulta: idConsulta
+                })
+          }catch(e){
+            
+            showMessage({ message: "Erro ao exportar resultados", type: "error" })
+          }finally{
+            setIsLoadingCsv(false)
+          }
+        }
 
     const topoRef = useRef<HTMLDivElement>(null);
 
@@ -189,9 +222,9 @@ const Busca = () => {
         }
     };
 
-    useEffect(()=>{
+    useEffect(() => {
         setNota(0)
-    },[idConsulta])
+    }, [idConsulta])
 
 
     return (
@@ -338,7 +371,7 @@ const Busca = () => {
                                     // onMouseLeave: O mouse saiu do grupo de estrelas, zera o hover
                                     onMouseLeave={() => setHover(0)}
                                     // onClick: Grava a nota definitiva
-                                    onClick={() => { 
+                                    onClick={() => {
                                         setNota(estrelaAtual)
                                         avaliarConsulta(estrelaAtual)
                                     }}
@@ -352,7 +385,27 @@ const Busca = () => {
                         })}
                     </div>
                 </div>
-                <p className='text-[#898989] text-sm'>total de arquivos: {totalArquivos}</p>
+                <div className={'flex flex-col gap-0.5 items-end'}>
+                    <div className="flex gap-2">
+                        <Button
+                            onClick={handleExportarCsv}
+                            className='bg-neutral-100  hover:bg-neutral-200 text-[#404040] border border-[#3F3E3E] text-sm '
+                            text='Exportar CSV'
+                            corSpin="PRETO"
+                            isLoading={isLoadingCsv}
+                        />
+
+                        <Button
+                            onClick={handleExportarPdf}
+                            className='bg-neutral-100  hover:bg-neutral-200 text-[#404040] border border-[#3F3E3E] text-sm '
+                            text='Exportar PDF'
+                            corSpin="PRETO"
+                            isLoading={isLoadingPdf}
+                        />
+                    </div>
+                    <p className='text-[#898989] text-sm'>total de arquivos: {totalArquivos}</p>
+                </div>
+                
 
             </div>)}
 

@@ -137,4 +137,24 @@ public class ConsultaService {
         consulta.setAvaliacao(request.avaliacao());
         consultaRepository.save(consulta);
     }
+
+    public List<Consulta> listarRelatorio( String nomeOuEmail,LocalDate dataDe, LocalDate dataAte, Boolean onlyErro) {
+
+        // Converte as datas para pegar o início do dia e o final do dia
+        LocalDateTime dataDeConvertida = (dataDe != null) ? dataDe.atStartOfDay() : null;
+        LocalDateTime dataAteConvertida = (dataAte != null) ? dataAte.atTime(LocalTime.MAX) : null;
+
+        List<Consulta> consultas;
+        if(onlyErro){
+            consultas = consultaRepository.listarRelatorioErro(nomeOuEmail, dataDeConvertida, dataAteConvertida);
+        }else{
+            consultas = consultaRepository.listarRelatorio(nomeOuEmail, dataDeConvertida, dataAteConvertida);
+
+        }
+
+        return consultas;
+
+
+
+    }
 }

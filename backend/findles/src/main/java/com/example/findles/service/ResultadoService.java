@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
 
 @Service
 public class ResultadoService {
@@ -22,7 +23,7 @@ public class ResultadoService {
     @Autowired
     private ResultadoRepository repository;
 
-    @GetMapping
+
     public Page<ResultadoBuscaDTO> listar(Integer id, Pageable paginacao) {
         Page<Resultado> resultadosPaginados = repository.buscarPorConsulta(
                 id,
@@ -31,4 +32,10 @@ public class ResultadoService {
 
         return resultadosPaginados.map(ResultadoBuscaDTO::new);
     }
+
+    public List<Resultado> listarRelatorio(Integer id) {
+        return repository.listarRelatorio(id);
+    }
+
+
 }

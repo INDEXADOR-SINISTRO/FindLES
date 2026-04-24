@@ -62,4 +62,26 @@ public interface ConsultaRepository extends JpaRepository<Consulta, Integer> {
             "ORDER BY CAST(c.dataConsulta AS date) DESC " +
             "LIMIT 7")
     List<GraficoDiarioDTO> buscarDadosParaGrafico();
+
+
+    @Query("SELECT c FROM Consulta c WHERE " +
+            "(:nomeOuEmail IS NULL OR LOWER(c.criadoPor.nome) LIKE LOWER(CONCAT('%', :nomeOuEmail, '%')) OR LOWER(c.criadoPor.email) LIKE LOWER(CONCAT('%', :nomeOuEmail, '%'))) AND " +
+            "(cast(:dataDe as timestamp) IS NULL OR c.dataConsulta>= :dataDe) AND " +
+            "(cast(:dataAte as timestamp) IS NULL OR c.dataConsulta <= :dataAte)")
+    List<Consulta> listarRelatorio(
+            @Param("nomeOuEmail") String nomeOuEmail,
+            @Param("dataDe") LocalDateTime dataDe,
+            @Param("dataAte") LocalDateTime dataAte);
+
+    @Query("SELECT c FROM Consulta c WHERE " +
+            "(:nomeOuEmail IS NULL OR LOWER(c.criadoPor.nome) LIKE LOWER(CONCAT('%', :nomeOuEmail, '%')) OR LOWER(c.criadoPor.email) LIKE LOWER(CONCAT('%', :nomeOuEmail, '%'))) AND " +
+            "(cast(:dataDe as timestamp) IS NULL OR c.dataConsulta >= :dataDe) AND " +
+            "(cast(:dataAte as timestamp) IS NULL OR c.dataConsulta <= :dataAte) AND " +
+            "(c.erro IS NOT NULL OR c.quantidadeResultado = 0)")
+    List<Consulta> listarRelatorioErro(
+            @Param("nomeOuEmail") String nomeOuEmail,
+            @Param("dataDe") LocalDateTime dataDe,
+            @Param("dataAte") LocalDateTime dataAte);
+
+
 }
