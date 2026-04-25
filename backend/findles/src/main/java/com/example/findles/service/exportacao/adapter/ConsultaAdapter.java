@@ -8,7 +8,7 @@ import java.util.List;
 public class ConsultaAdapter implements EntidadeExportacaoAdapter<Consulta> {
 
     @Override
-    public TabelaExportacaoDTO adaptar(List<Consulta> consultas) {
+    public TabelaExportacaoDTO adaptar(List<Consulta> consultas,String subtitulo) {
         String[] cabecalhos = {"ID","Usuário", "Data", "Tempo (ms)","Qtd resultados", "Status", "Avaliação", "Pesquisa"};
 
         // Transforma cada Consulta em um array de Strings (uma linha da tabela)
@@ -24,6 +24,6 @@ public class ConsultaAdapter implements EntidadeExportacaoAdapter<Consulta> {
                         c.getStringBusca()
                 }).toList();
 
-        return new TabelaExportacaoDTO("Histórico de Consultas", cabecalhos, linhas);
+        return new TabelaExportacaoDTO("Histórico de Consultas",subtitulo, cabecalhos, linhas);
     }
 }

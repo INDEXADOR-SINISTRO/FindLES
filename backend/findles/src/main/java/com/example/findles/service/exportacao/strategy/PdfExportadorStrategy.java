@@ -49,6 +49,14 @@ public class PdfExportadorStrategy implements ExportadorStrategy {
         titulo.setSpacingAfter(20); // Dá um espaço entre o título e a tabela
         document.add(titulo);
 
+        if (tabela.subtitulo() != null && !tabela.subtitulo().isBlank()) {
+            Font fonteSubtitulo = FontFactory.getFont(FontFactory.HELVETICA, 10, Color.DARK_GRAY);
+            Paragraph paragSubtitulo = new Paragraph(tabela.subtitulo(), fonteSubtitulo);
+            paragSubtitulo.setAlignment(Paragraph.ALIGN_LEFT);
+            paragSubtitulo.setSpacingAfter(15); // Dá um espaço antes de começar a tabela
+            document.add(paragSubtitulo);
+        }
+
         // 3. Configura a Tabela do PDF (A quantidade de colunas é o tamanho do array de cabeçalho)
         int quantidadeColunas = tabela.cabecalhos().length;
         PdfPTable pdfTable = new PdfPTable(quantidadeColunas);

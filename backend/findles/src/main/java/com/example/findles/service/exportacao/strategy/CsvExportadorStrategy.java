@@ -21,6 +21,11 @@ public class CsvExportadorStrategy implements ExportadorStrategy {
     public void exportar(TabelaExportacaoDTO tabela, OutputStream out) throws Exception {
         try (CSVWriter writer = new CSVWriter(new OutputStreamWriter(out))) {
 
+
+            if (tabela.subtitulo() != null && !tabela.subtitulo().isBlank()) {
+                writer.writeNext(new String[]{ tabela.subtitulo() });
+                writer.writeNext(new String[]{ "" }); // Linha em branco opcional para separar
+            }
             // 1. Escreve o cabeçalho
             writer.writeNext(tabela.cabecalhos());
 

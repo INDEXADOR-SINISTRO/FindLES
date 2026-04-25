@@ -10,7 +10,7 @@ import java.util.List;
 public class AuditoriaAdapter implements EntidadeExportacaoAdapter<Auditoria> {
 
     @Override
-    public TabelaExportacaoDTO adaptar(List<Auditoria> auditorias) {
+    public TabelaExportacaoDTO adaptar(List<Auditoria> auditorias,String subtitulo) {
         String[] cabecalhos = {"ID","Usuário", "Data", "Tempo (ms)", "Status","Ação"};
 
         // Transforma cada Consulta em um array de Strings (uma linha da tabela)
@@ -24,6 +24,6 @@ public class AuditoriaAdapter implements EntidadeExportacaoAdapter<Auditoria> {
                         a.getAcao()
                 }).toList();
 
-        return new TabelaExportacaoDTO("Histórico de Auditoria", cabecalhos, linhas);
+        return new TabelaExportacaoDTO("Histórico de Auditoria",subtitulo, cabecalhos, linhas);
     }
 }

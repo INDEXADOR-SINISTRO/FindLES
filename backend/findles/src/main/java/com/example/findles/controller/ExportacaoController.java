@@ -56,7 +56,9 @@ public class ExportacaoController {
 
 
         List<Consulta> dados = consultaService.listarRelatorio(nomeOuEmail,dataDe,dataAte,onlyErro);
-        exportadorService.executarExportacao(formato, dados, consultaAdapter, response);
+        String textoPeriodo = montarTextoPeriodo(dataDe, dataAte);
+
+        exportadorService.executarExportacao(formato, dados, consultaAdapter,textoPeriodo, response);
        }
 
 
@@ -70,8 +72,8 @@ public class ExportacaoController {
 
 
         List<Auditoria> dados = auditoriaService.listarRelatorio(nomeOuEmail,dataDe,dataAte);
-
-        exportadorService.executarExportacao(formato, dados, auditoriaAdapter, response);
+        String textoPeriodo = montarTextoPeriodo(dataDe, dataAte);
+        exportadorService.executarExportacao(formato, dados, auditoriaAdapter,textoPeriodo, response);
     }
 
     @GetMapping("/resultado/{formato}")
@@ -81,6 +83,20 @@ public class ExportacaoController {
             HttpServletResponse response) throws Exception {
 
         List<Resultado> dados = resultadoService.listarRelatorio(idConsulta);
-        exportadorService.executarExportacao(formato, dados, resultadoAdapter, response);
+
+        exportadorService.executarExportacao(formato, dados, resultadoAdapter,"", response);
+    }
+
+    // Função auxiliar que resolve o seu problema do Fallback
+    private String montarTextoPeriodo(LocalDate dataDe, LocalDate dataAte) {
+        if (dataDe != null && dataAte != null) {
+            return "Período: " + dataDe.toString() + " até " + dataAte.toString() ;
+        } else if (dataDe != null) {
+            return "Período: A partir de " + dataDe.toString() ;
+        } else if (dataAte != null) {
+            return "Período: Até " + dataAte.toString() ;
+        }
+
+        return "Período: Todo o histórico disponível";
     }
 }

@@ -10,7 +10,7 @@ import java.util.List;
 public class ResultadoAdapter implements EntidadeExportacaoAdapter<Resultado> {
 
     @Override
-    public TabelaExportacaoDTO adaptar(List<Resultado> resultado) {
+    public TabelaExportacaoDTO adaptar(List<Resultado> resultado,String subtitulo) {
         String[] cabecalhos = {"ID","Documento", "Relevância", "Trecho encontrado"};
 
         // Transforma cada Consulta em um array de Strings (uma linha da tabela)
@@ -22,6 +22,6 @@ public class ResultadoAdapter implements EntidadeExportacaoAdapter<Resultado> {
                         r.getTrechoEncontrado()
                 }).toList();
 
-        return new TabelaExportacaoDTO(resultado.getFirst().getConsulta().getStringBusca(), cabecalhos, linhas);
+        return new TabelaExportacaoDTO(resultado.getFirst().getConsulta().getStringBusca(),subtitulo, cabecalhos, linhas);
     }
 }

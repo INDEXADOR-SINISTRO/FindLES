@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface EntidadeExportacaoAdapter<T> {
     // Pega uma lista de qualquer coisa e devolve a nossa Tabela Universal
-    TabelaExportacaoDTO adaptar(List<T> entidades);
+    TabelaExportacaoDTO adaptar(List<T> entidades,String subtitulo);
 }

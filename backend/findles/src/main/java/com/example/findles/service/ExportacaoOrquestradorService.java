@@ -26,6 +26,7 @@ public class ExportacaoOrquestradorService {
             FormatoExportacao formato,
             List<T> dadosBrutos,
             EntidadeExportacaoAdapter<T> adapter,
+            String subtitulo,
             HttpServletResponse response) throws Exception {
 
         // 1. Descobre qual Strategy usar
@@ -35,7 +36,7 @@ public class ExportacaoOrquestradorService {
         }
 
         // 2. O ADAPTER ENTRA EM AÇÃO: Traduz os dados do banco para a Tabela Universal
-        TabelaExportacaoDTO tabelaPronta = adapter.adaptar(dadosBrutos);
+        TabelaExportacaoDTO tabelaPronta = adapter.adaptar(dadosBrutos,subtitulo);
 
         // 3. Configura os Headers do Navegador
         response.setContentType(strategy.getContentType());
