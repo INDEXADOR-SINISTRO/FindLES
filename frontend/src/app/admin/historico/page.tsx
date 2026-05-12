@@ -91,11 +91,11 @@ const Historico = () => {
   useEffect(() => {
     buscarConsultas(1, size, nomeOuEmail, dataDe, dataAte, erroChecked)
     setPaginaAtual(1)
-  }, [size])
+  }, [size, erroChecked])
 
 
 
-const [nomeOuEmail, setNomeOuEmail] = useState<string>("")
+  const [nomeOuEmail, setNomeOuEmail] = useState<string>("")
   const [expandido, setExpandido] = useState(true);
   const [dataDe, setDataDe] = useState("");
   const [dataAte, setDataAte] = useState("");
@@ -111,7 +111,9 @@ const [nomeOuEmail, setNomeOuEmail] = useState<string>("")
     setDataAte("");
     setSize(10);
     setErroChecked(false)
-    buscarConsultas(1, 10, "", "", "", false)
+    if (consultas.length === 0) {
+      buscarConsultas(1, 10, "", "", "", false)
+    }
   };
 
 

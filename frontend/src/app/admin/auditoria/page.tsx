@@ -101,7 +101,9 @@ const Auditoria = () => {
     setDataDe("");
     setDataAte("");
     setSize(10);
-    buscarAuditorias(1, 10, "", "", "")
+    if (auditorias.length === 0) {
+      buscarAuditorias(1, 10, "", "", "")
+    }
   };
 
 
