@@ -98,8 +98,8 @@ const Input = ({
                     >
                       { isPassword && (
                           escondido === "password" ?
-                            <EyeSlashIcon className='w-6 h-6 cursor-pointer'></EyeSlashIcon>
-                          : <EyeIcon className='w-6 h-6 cursor-pointer'></EyeIcon>
+                            <EyeSlashIcon className={showError ? "text-red-500 w-6 h-6 cursor-pointer" : 'w-6 h-6 cursor-pointer'}></EyeSlashIcon>
+                          : <EyeIcon className={showError ? "text-red-500 w-6 h-6 cursor-pointer" : 'w-6 h-6 cursor-pointer'}></EyeIcon>
                       )
                         
                       }

@@ -60,8 +60,8 @@ class ApiService {
     config?: AxiosRequestConfig
   ): Promise<T> {
     try {
-      const response = await apiClient.put<ApiResponse<T>>(url, data, config)
-      return response.data.content
+      const response = await apiClient.put<T>(url, data, config)
+      return response.data
     } catch (error) {
       throw this.handleError(error)
     }

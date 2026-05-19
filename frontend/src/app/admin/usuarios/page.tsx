@@ -121,7 +121,7 @@ const Usuarios = () => {
 
     } catch (error) {
       console.error("Erro ao buscar:", error);
-      showMessage({ message: "Erro ao listar documentos", type: "error" })
+      showMessage({ message: "Erro ao listar usuários", type: "error" })
     }
   };
 

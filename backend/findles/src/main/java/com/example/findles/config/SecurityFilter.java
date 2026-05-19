@@ -56,6 +56,17 @@ public class SecurityFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
         }catch(RuntimeException ex){
             logger.error("token inválido: {}", ex.getMessage());
+
+            SecurityContextHolder.clearContext();
+
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+
+
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+
+            String jsonErro = "{\"erro\": \"Acesso negado: Token inválido ou expirado.\"}";
+            response.getWriter().write(jsonErro);
         }
     }
 

@@ -28,20 +28,20 @@ public class AutenticacaoController {
     @PostMapping
     public ResponseEntity<?> efetuarLogin(@RequestBody @Valid DadosAutenticacaoDTO dados) {
         try{
+            // 1. Converte o nosso DTO para o formato que o Spring Security entende
+            var authenticationToken = new UsernamePasswordAuthenticationToken(dados.email(), dados.senha());
 
+            // 2. Chama o gerenciador para validar (Ele vai lá no AutenticacaoService, busca no banco e compara a senha)
+            var authentication = manager.authenticate(authenticationToken);
+
+            // 3. Se a senha bater, o código chega aqui. Pegamos o usuário logado e geramos o token.
+            var tokenJWT = tokenService.gerarToken((Usuario) authentication.getPrincipal());
+
+            // 4. Devolvemos o token na resposta com status 200 (OK)
+            return ResponseEntity.ok(new DadosTokenJWTDTO(tokenJWT));
         }catch(IllegalArgumentException e){
             return ResponseEntity.badRequest().body(e.getMessage());
         }
-        // 1. Converte o nosso DTO para o formato que o Spring Security entende
-        var authenticationToken = new UsernamePasswordAuthenticationToken(dados.email(), dados.senha());
 
-        // 2. Chama o gerenciador para validar (Ele vai lá no AutenticacaoService, busca no banco e compara a senha)
-        var authentication = manager.authenticate(authenticationToken);
-
-        // 3. Se a senha bater, o código chega aqui. Pegamos o usuário logado e geramos o token.
-        var tokenJWT = tokenService.gerarToken((Usuario) authentication.getPrincipal());
-
-        // 4. Devolvemos o token na resposta com status 200 (OK)
-        return ResponseEntity.ok(new DadosTokenJWTDTO(tokenJWT));
     }
 }

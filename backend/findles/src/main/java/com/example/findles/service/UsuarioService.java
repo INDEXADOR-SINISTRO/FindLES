@@ -38,6 +38,12 @@ public class UsuarioService {
     @Autowired
     private UsuarioMapper usuarioMapper;
 
+    @Autowired
+    private TokenService tokenService;
+
+    @Autowired
+    private EmailService emailService;
+
     public Usuario cadastrarUsuario(DadosCadastroUsuarioDTO dados) {
         logger.info("Tentando cadastrar usuário com e-mail: {}", dados.email());
         // 1. Regra de Negócio: E-mail único
@@ -98,6 +104,36 @@ public class UsuarioService {
 
         } catch (DataIntegrityViolationException e) {
             throw new RuntimeException("Tentativa de editar um usuário recusada, email já cadastrado");
+        }catch (Exception e){
+            throw e;
+        }
+
+    }
+
+    public void sendEmailRecover (String email) {
+        try{
+
+            Usuario usuario = usuarioRepository.encontrarUsuarioPeloEmail(email);
+            if (usuario == null) {
+                throw new IllegalArgumentException(email + " não encontrado");
+            }
+            String tokenJWT = tokenService.gerarTokenRecover(usuario);
+            String linkRecuperacao = "http://localhost:3000/redefinir-senha?token=" + tokenJWT;
+            emailService.enviarEmailRecuperacaoSenha(usuario.getEmail(),linkRecuperacao);
+        }catch (Exception e){
+            throw e;
+        }
+
+    }
+
+    public void redefinirSenha (String password, String token) {
+        try{
+            String email = tokenService.getSubject(token);
+            logger.info("Redefinindo senha do usuario {}",email);
+            Usuario usuario = usuarioRepository.encontrarUsuarioPeloEmail(email);
+            usuario.setSenha(passwordEncoder.encode(password));
+            usuarioRepository.save(usuario);
+            logger.info("Senha redefinida com sucesso!");
         }catch (Exception e){
             throw e;
         }

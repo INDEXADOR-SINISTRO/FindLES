@@ -34,7 +34,9 @@ public class SecurityConfigurations {
                     req.requestMatchers("/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").permitAll();
                     // Libera a rota de login para qualquer um acessar sem token
                     req.requestMatchers(HttpMethod.POST, "/api/login").permitAll();
-                    req.requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll();
+                    req.requestMatchers(HttpMethod.POST, "/api/usuarios/**").permitAll();
+
+                    req.requestMatchers(HttpMethod.PUT, "/api/usuarios").permitAll();
 
                     // Exemplo de como você poderia bloquear uma rota só para administradores no futuro:
                     // req.requestMatchers(HttpMethod.DELETE, "/documentos/*").hasRole("ADMIN");

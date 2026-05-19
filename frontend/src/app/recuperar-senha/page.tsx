@@ -12,6 +12,8 @@ import { useRouter } from "next/navigation";
 import { ChangeEvent, useCallback, useEffect, useState } from "react";
 
 import logo from "@/assets/logo_findLES_cor.png";
+import { userService } from "@/lib/services/usuario";
+import { emailRecoverPasswordDto } from "@/types/user";
 
 
 
@@ -19,6 +21,44 @@ const Recover = () => {
   const [email, setEmail] = useState<string>("");
   const { showMessage } = useSnackbar();
   const { push } = useRouter();
+  const [isLoading,setIsLoading] = useState<boolean>(false);
+  const [emailEnviado,setEmailEnviado] = useState<boolean>(false);
+  
+  const [submitWasClicked,setSubmitWasClicked] = useState<boolean>(false)
+
+
+const onCheckFields = ()=>{
+      if (email === ""){
+        return true;
+      }
+      return false;
+    }
+    
+    const onSubmit = async()=>{
+      
+      
+      const invalidFields = onCheckFields() 
+      setSubmitWasClicked(true);
+      if(invalidFields){
+        showMessage({ message: "Preencha o campo de email", type: "error" })
+        return;
+      }
+      try{
+        setIsLoading(true);
+        const payload:emailRecoverPasswordDto ={
+          email: email
+        } 
+        showMessage({message:"Aguarde um momento", type:"info",duration:15000});
+        const response = await userService.sendEmail(payload)
+        setEmailEnviado(true)
+        showMessage({message:response, type:"success"});
+      }catch(e){
+        const error = e as Error;
+        showMessage({message:error.message, type:"error"});
+      }finally{
+        setIsLoading(false)
+      }
+  }
   return (
 
     <div className="min-h-screen flex items-center justify-center bg-[#EBE9E1]">
@@ -48,12 +88,12 @@ const Recover = () => {
             <div className="w-3 bg-gray-300"></div>
 
             <div className="p-4 text-sm text-gray-700 font-medium leading-relaxed flex gap-2">
-              Informe o e-mail da sua conta para receber o link de recuperação.
+              {emailEnviado ? "Email enviado com sucesso! Cheque sua caixa de email." : "Informe o e-mail da sua conta para receber o link de recuperação."}
             </div>
             <ExclamationCircleIcon className='w-8 h-8 text-gray-700 my-auto ml-auto mr-2'></ExclamationCircleIcon>
           </div>
 
-          <div className="mb-4">
+          <div className={emailEnviado ? "hidden" : "mb-4"}>
 
             <Input
               id="email"
@@ -61,18 +101,20 @@ const Recover = () => {
               onChange={(e) => { setEmail(e.target.value) }}
               label="E-mail cadastrado"
               value={email}
+              showError={email === "" && submitWasClicked}
             />
 
           </div>
 
 
 
-          <div className="flex justify-center mb-4">
+          <div className={emailEnviado ? "hidden" : "flex justify-center mb-4"}>
 
             <Button
-              onClick={() => { showMessage({ message: "Não implementado", type: "warning" }) }}
+              onClick={onSubmit}
               text="Enviar"
               className="text-white"
+              isLoading={isLoading}
             />
           </div>
 

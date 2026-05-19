@@ -69,7 +69,10 @@ export function proxy(request: NextRequest) {
   }
 
   if (token && tokenDecodificado && tokenDecodificado.isValidToken){
-      if ((pathname === '/' || pathname === '/login' || pathname === '/recuperar-senha' || pathname === "/cadastrar")) {
+      if(tokenDecodificado.role === "RECOVER" && (pathname.includes("admin") || pathname.includes("busca"))){
+        return NextResponse.redirect(new URL('/', request.url));
+      }
+      if ((pathname === '/' || pathname === '/login' || pathname === '/recuperar-senha' || pathname === "/cadastrar") && tokenDecodificado.role !== "RECOVER") {
         return NextResponse.redirect(new URL('/busca', request.url));
       }
 
