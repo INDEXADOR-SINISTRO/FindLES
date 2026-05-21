@@ -38,7 +38,7 @@ const Busca = () => {
 
     const [totalArquivos, setTotalArquivos] = useState(0)
 
-    const [isLoading,setIsLoading] = useState<boolean>(false)
+    const [isLoading, setIsLoading] = useState<boolean>(false)
 
 
     const [tokens, setTokens] = useState<string[]>([])
@@ -108,23 +108,23 @@ const Busca = () => {
         setSize(10);
     };
 
-    const avaliarConsulta = async(nota: number)=>{
-        try{
+    const avaliarConsulta = async (nota: number) => {
+        try {
 
             const payload: avaliarConsultaDto = {
                 avaliacao: nota,
                 idConsulta: idConsulta!
-            }            
+            }
             await consultaService.avaliar(payload)
             showMessage({ message: "Avaliado", type: "success" })
-        }catch (error) {
+        } catch (error) {
 
             showMessage({ message: "Erro ao avaliar consulta", type: "error" })
         }
     }
 
     const criarConsulta = async (busca: string, categoria: string, dataDe: string, dataAte: string) => {
-        if (busca.trim() === "" || busca.trim().length < 2 || (busca === buscaPrevious)) {
+        if (busca.trim() === "" || busca.trim().length < 2) {
             return;
         }
         try {
@@ -144,7 +144,7 @@ const Busca = () => {
         } catch (error) {
 
             showMessage({ message: "Erro ao consultar documentos", type: "error" })
-        }finally{
+        } finally {
             setIsLoading(false);
         }
     };
@@ -195,9 +195,9 @@ const Busca = () => {
         }
     };
 
-    useEffect(()=>{
+    useEffect(() => {
         setNota(0)
-    },[idConsulta])
+    }, [idConsulta])
 
 
     return (
@@ -211,6 +211,12 @@ const Busca = () => {
                     id='busca'
                     value={busca}
                     onChange={(e) => setBusca(e.target.value)}
+                    onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                            e.preventDefault();
+                            criarConsulta(busca, categoria, dataDe, dataAte);
+                        }
+                    }}
                     type='text'
                     className='w-full'
                 />
@@ -345,7 +351,7 @@ const Busca = () => {
                                     // onMouseLeave: O mouse saiu do grupo de estrelas, zera o hover
                                     onMouseLeave={() => setHover(0)}
                                     // onClick: Grava a nota definitiva
-                                    onClick={() => { 
+                                    onClick={() => {
                                         setNota(estrelaAtual)
                                         avaliarConsulta(estrelaAtual)
                                     }}

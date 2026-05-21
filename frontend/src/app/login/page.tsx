@@ -17,57 +17,57 @@ import { AuthContext } from "@/context/AuthContext";
 const Login = () => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const [ isLoading,setIsLoading] = useState<boolean>(false);
-  const {showMessage} = useSnackbar()
-  const {push} = useRouter();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { showMessage } = useSnackbar()
+  const { push } = useRouter();
   const { signIn } = useContext(AuthContext);
-  const [submitWasClicked,setSubmitWasClicked] = useState<boolean>(false)
+  const [submitWasClicked, setSubmitWasClicked] = useState<boolean>(false)
 
-  const onCheckFields = ()=>{
-      if (email === "" || password === ""){
-        return true;
-      }
-      return false;
+  const onCheckFields = () => {
+    if (email === "" || password === "") {
+      return true;
     }
-    
-    const onSubmit = async()=>{
-      
-      
-      const invalidFields = onCheckFields() 
-      setSubmitWasClicked(true);
-      if(invalidFields){
-        showMessage({ message: "Preencha todos os campos", type: "error" })
-        return;
-      }
-      
-      setIsLoading(true)
-      const payload :authDto = {
-        email: email,
-        senha: password
-      }
-      try{
-        await signIn(payload);
-      }catch(e){
-        const error = e as Error;
-        showMessage({message:"E-mail ou senha incorretos.", type:"error"});
-      }finally{
-        setIsLoading(false)
-      }
+    return false;
+  }
+
+  const onSubmit = async () => {
+
+
+    const invalidFields = onCheckFields()
+    setSubmitWasClicked(true);
+    if (invalidFields) {
+      showMessage({ message: "Preencha todos os campos", type: "error" })
+      return;
     }
+
+    setIsLoading(true)
+    const payload: authDto = {
+      email: email,
+      senha: password
+    }
+    try {
+      await signIn(payload);
+    } catch (e) {
+      const error = e as Error;
+      showMessage({ message: "E-mail ou senha incorretos.", type: "error" });
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
 
   return (
- 
+
     <div className="min-h-screen flex items-center justify-center bg-[#EBE9E1]">
-      
-      
+
+
       <div className="bg-white p-10 w-full shadow-[4px_4px_5px_rgba(0,0,0,0.40)] border border-[#898989] max-w-105">
-        
+
         <Image
-            alt="logo"
-            src={logo}
-            className="ml-auto mr-auto cursor-pointer w-40 h-16 "
-            onClick={() => push("/login")}
+          alt="logo"
+          src={logo}
+          className="ml-auto mr-auto cursor-pointer w-40 h-16 "
+          onClick={() => push("/login")}
         />
         {/*<h1 className="text-3xl font-medium text-center text-black">
           FindLES
@@ -77,29 +77,41 @@ const Login = () => {
           e.preventDefault();
           onSubmit();
         }}>
-          
+
           <div className="mb-4">
-            
+
             <Input
-                id="email"
-                type="email"
-                onChange={(e)=>{setEmail(e.target.value)}}
-                label="E-mail"
-                value={email}
-                showError={email === "" && submitWasClicked}
+              id="email"
+              type="email"
+              onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  onSubmit();
+                }
+              }}
+              label="E-mail"
+              value={email}
+              showError={email === "" && submitWasClicked}
             />
-            
+
           </div>
 
           <div className="mb-1">
             <Input
-                id="senha"
-                type="password"
-                onChange={(e)=>{setPassword(e.target.value)}}
-                label="Senha"
-                value={password}
-                isPassword={true}
-                showError={password === "" && submitWasClicked}
+              id="senha"
+              type="password"
+              onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  onSubmit();
+                }
+              }}
+              label="Senha"
+              value={password}
+              isPassword={true}
+              showError={password === "" && submitWasClicked}
             />
           </div>
 
@@ -109,15 +121,13 @@ const Login = () => {
             </a>
           </div>
 
-          <div className="flex justify-center mb-4">    
-            <a href="/admin">
-                <Button
-                onClick={()=>{}}
-                text="Entrar"
-                className="text-white"
-                isLoading={isLoading}
-                />
-            </a>
+          <div className="flex justify-center mb-4">
+            <Button
+              onClick={onSubmit}
+              text="Entrar"
+              className="text-white"
+              isLoading={isLoading}
+            />
           </div>
 
           <div className="flex justify-center">

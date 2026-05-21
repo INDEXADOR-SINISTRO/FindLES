@@ -1,6 +1,5 @@
 "use client";
 
-import AsyncSelect, { Option } from "@/components/widgets/AsyncSelect";
 import Button from "@/components/widgets/Button";
 import Input from "@/components/widgets/input";
 import Select, { OptionType } from "@/components/widgets/select";
