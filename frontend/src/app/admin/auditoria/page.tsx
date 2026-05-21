@@ -5,6 +5,7 @@ import Input from "@/components/widgets/input";
 import Select, { OptionType } from "@/components/widgets/select";
 import { useSnackbar } from "@/components/widgets/snackbar";
 import { auditoriaService } from "@/lib/services/auditoria";
+import { exportacaoService } from "@/lib/services/exportacao";
 import { formatarDataHora } from "@/lib/utils/date";
 import { AuditoriaDto } from "@/types/auditoria";
 import { ChevronLeftIcon, ChevronRightIcon, FunnelIcon, HandThumbDownIcon } from "@heroicons/react/24/solid";
@@ -39,6 +40,9 @@ const optionsMaxResultados: OptionType[] = [
 
 const Auditoria = () => {
   const nada = true;
+
+  const [isLoadingPdf,setIsLoadingPdf] = useState<boolean>(false);
+  const [isLoadingCsv,setIsLoadingCsv] = useState<boolean>(false);
 
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [size, setSize] = useState<number>(10);
@@ -105,6 +109,38 @@ const Auditoria = () => {
       buscarAuditorias(1, 10, "", "", "")
     }
   };
+
+  const handleExportarPdf = async()=>{
+      try{
+          setIsLoadingPdf(true)
+         await exportacaoService.baixarRelatorio("auditoria","PDF",{
+            nomeOuEmail: nomeOuEmail,
+            dataDe: dataDe,
+            dataAte: dataAte
+          })
+      }catch(e){
+        
+        showMessage({ message: "Erro ao exportar auditoria", type: "error" })
+      }finally{
+        setIsLoadingPdf(false)
+      }
+    }
+  
+    const handleExportarCsv = async()=>{
+      try{
+        setIsLoadingCsv(true)
+         await exportacaoService.baixarRelatorio("auditoria","CSV",{
+            nomeOuEmail: nomeOuEmail,
+            dataDe: dataDe,
+            dataAte: dataAte
+          })
+      }catch(e){
+        
+        showMessage({ message: "Erro ao exportar auditoria", type: "error" })
+      }finally{
+        setIsLoadingCsv(false)
+      }
+    }
 
 
   const topoRef = useRef<HTMLDivElement>(null);
@@ -236,15 +272,19 @@ const Auditoria = () => {
           {auditorias.length !== 0  && (<div className='w-full mb-4 mt-4 flex justify-end items-center'>
             <div className={'flex gap-2'}>
               <Button
-                onClick={() => { showMessage({ message: "Não implementado", type: "warning" }) }}
+                onClick={handleExportarCsv}
                 className='bg-neutral-100  hover:bg-neutral-200 text-[#404040] border border-[#3F3E3E] text-sm '
                 text='Exportar CSV'
+                corSpin="PRETO"
+                isLoading={isLoadingCsv}
               />
 
               <Button
-                onClick={() => { showMessage({ message: "Não implementado", type: "warning" }) }}
+                onClick={handleExportarPdf}
                 className='bg-neutral-100  hover:bg-neutral-200 text-[#404040] border border-[#3F3E3E] text-sm '
                 text='Exportar PDF'
+                corSpin="PRETO"
+                isLoading={isLoadingPdf}
               />
             </div>
           </div>)}

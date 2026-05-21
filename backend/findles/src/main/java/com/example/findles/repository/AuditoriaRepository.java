@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Repository
 public interface AuditoriaRepository extends JpaRepository<Auditoria, Integer> {
@@ -23,4 +24,13 @@ public interface AuditoriaRepository extends JpaRepository<Auditoria, Integer> {
             @Param("dataDe") LocalDateTime dataDe,
             @Param("dataAte") LocalDateTime dataAte,
             Pageable pageable);
+
+    @Query("SELECT a FROM Auditoria a WHERE " +
+            "(:nomeOuEmail IS NULL OR LOWER(a.acionadoPor.nome) LIKE LOWER(CONCAT('%', :nomeOuEmail, '%')) OR LOWER(a.acionadoPor.email) LIKE LOWER(CONCAT('%', :nomeOuEmail, '%'))) AND " +
+            "(cast(:dataDe as timestamp) IS NULL OR a.data>= :dataDe) AND " +
+            "(cast(:dataAte as timestamp) IS NULL OR a.data <= :dataAte)")
+    List<Auditoria> listarRelatorio(
+            @Param("nomeOuEmail") String nomeOuEmail,
+            @Param("dataDe") LocalDateTime dataDe,
+            @Param("dataAte") LocalDateTime dataAte);
 }

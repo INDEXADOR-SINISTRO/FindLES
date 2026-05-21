@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Repository
 public interface ResultadoRepository extends JpaRepository<Resultado, Integer> {
@@ -18,4 +19,8 @@ public interface ResultadoRepository extends JpaRepository<Resultado, Integer> {
     Page<Resultado> buscarPorConsulta(
             @Param("idConsulta") Integer idConsulta,
             Pageable pageable);
+
+    @Query("SELECT r FROM Resultado r WHERE  r.consulta.id = :idConsulta ORDER BY r.relevanciaScore DESC" )
+    List<Resultado> listarRelatorio(
+            @Param("idConsulta") Integer idConsulta);
 }
